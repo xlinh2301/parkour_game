@@ -145,15 +145,28 @@ export class CharacterController {
 
         const runAction = this.character.userData.runAction;
         const idleAction = this.character.userData.idleAction;
+        const runSound = this.character.userData.runSound;
 
-        if (isMoving && !this.character.userData.isMoving) {
+        // Handle animation transitions based on isMoving
+        if (isMoving && !this.character.userData.isMoving) { // Started moving (intent)
             if (idleAction) idleAction.fadeOut(0.3);
             if (runAction) runAction.reset().fadeIn(0.3).play();
             this.character.userData.isMoving = true;
-        } else if (!isMoving && this.character.userData.isMoving) {
+        } else if (!isMoving && this.character.userData.isMoving) { // Stopped moving (intent)
             if (runAction) runAction.fadeOut(0.3);
             if (idleAction) idleAction.reset().fadeIn(0.3).play();
             this.character.userData.isMoving = false;
+        }
+
+        // Handle run sound based on isMoving and isOnGround, checked each frame
+        if (isMoving && this.isOnGround) {
+            if (runSound && !runSound.isPlaying) {
+                runSound.play();
+            }
+        } else { // Not moving OR not on ground
+            if (runSound && runSound.isPlaying) {
+                runSound.stop();
+            }
         }
     }
 
@@ -239,6 +252,15 @@ export class CharacterController {
 
         // Thiết lập cooldown
         this.jumpCooldown = 0.3;
+
+        // Play jump sound
+        const jumpSound = this.character.userData.jumpSound;
+        if (jumpSound) {
+            if (jumpSound.isPlaying) {
+                jumpSound.stop(); // Stop if already playing (e.g., rapid jumps)
+            }
+            jumpSound.play();
+        }
 
         // Play jump animation nếu có
         if (this.character && this.character.userData.jumpAction) {

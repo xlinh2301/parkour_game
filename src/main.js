@@ -43,13 +43,24 @@ const uiManager = new UIManager({
     onStartGame: () => {
         resetGame();
         requestPointerLock();
+        gameScene.playBackgroundMusic(); // Play music on start
     },
     onExitGame: () => {
         resetGame();
         document.exitPointerLock();
+        gameScene.stopBackgroundMusic(); // Stop music on exit
     },
     onResumeGame: () => {
         requestPointerLock();
+        // Optionally, resume music if it was paused or stopped
+        // gameScene.playBackgroundMusic(); 
+    },
+    // Add new callbacks for music toggle
+    onToggleMusic: () => {
+        gameScene.toggleBackgroundMusic();
+    },
+    isMusicPlaying: () => {
+        return gameScene.isBackgroundMusicPlaying();
     }
 });
 uiManager.showLoginScreen();
@@ -71,7 +82,7 @@ loadWorldWithPhysics(gameScene.scene, physicsWorld).then(() => {
     console.log('🌍 World loaded with physics!');
     
     // Load character sau khi world đã sẵn sàng
-    return loadCharacterWithPhysics(gameScene.scene, physicsWorld);
+    return loadCharacterWithPhysics(gameScene.scene, physicsWorld, gameScene.audioListener); // Pass audioListener
 }).then((characterData) => {
   character = characterData.mesh;
   characterBody = characterData.body;
