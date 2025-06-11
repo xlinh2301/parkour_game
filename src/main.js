@@ -34,7 +34,7 @@ loadWorldWithPhysics(gameScene.scene, physicsWorld).then(() => {
   character = characterData.mesh;
   characterBody = characterData.body;
   animationMixer = characterData.mixer;
-  characterController = new CharacterController(characterBody, character, physicsWorld.world);
+  characterController = new CharacterController(characterBody, character, physicsWorld.world, true);
   cameraSystem.setup(character);
   console.log('👤 Character setup complete with animations!');
 }).catch((error) => {
@@ -77,9 +77,9 @@ function animate() {
     physicsWorld.syncObject(character, characterBody);
     
     // Debug: Log character position occasionally
-    if (Math.floor(Date.now() / 1000) % 2 === 0) {
-      console.log(`Character position: (${characterBody.position.x.toFixed(2)}, ${characterBody.position.y.toFixed(2)}, ${characterBody.position.z.toFixed(2)}), velocity.y: ${characterBody.velocity.y.toFixed(2)}`);
-    }
+    // if (Math.floor(Date.now() / 1000) % 2 === 0) {
+    //   console.log(`Character position: (${characterBody.position.x.toFixed(2)}, ${characterBody.position.y.toFixed(2)}, ${characterBody.position.z.toFixed(2)}), velocity.y: ${characterBody.velocity.y.toFixed(2)}`);
+    // }
   }
   
   // Update camera

@@ -21,7 +21,7 @@ export function createVisualGroundPlane(scene) {
 
 export function loadWorld(scene) {
   const loader = new GLTFLoader();
-  loader.load('models/environment/parkour.glb', (gltf) => {
+  loader.load('models/environment/map.glb', (gltf) => {
     scene.add(gltf.scene);
   });
 }
@@ -29,7 +29,7 @@ export function loadWorld(scene) {
 export function loadWorldWithPhysics(scene, physicsWorld) {
   return new Promise((resolve) => {
     const loader = new GLTFLoader();
-    loader.load('models/environment/parkour.glb', (gltf) => {
+    loader.load('models/environment/map.glb', (gltf) => {
       const worldModel = gltf.scene;
       
       console.log('Loading world with physics...');

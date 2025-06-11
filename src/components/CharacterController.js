@@ -2,12 +2,12 @@ import { Vec3, RaycastResult } from 'cannon-es';
 import * as THREE from 'three';
 
 export class CharacterController {
-    constructor(body, character = null, world = null) {
+    constructor(body, character = null, world = null, debug = false) {
         this.body = body;
         this.character = character;
         this.world = world;
 
-        this.speed = 8;
+        this.speed = 12;
         this.jumpForce = 2; // Nhảy nhẹ hơn
 
         this.keys = {
@@ -30,6 +30,13 @@ export class CharacterController {
         }
 
         this.jumpCooldown = 0;
+        this.debug = debug;
+
+        // Helper: gói gọn console.log theo flag debug
+        this.debugLog = (...args) => {
+            if (this.debug) console.log(...args);
+        };
+
         this.setupEventListeners();
     }
 
@@ -59,6 +66,9 @@ export class CharacterController {
             case 'Space':
                 this.keys.jump = true;
                 event.preventDefault();
+
+                // Gọi trực tiếp hàm jump thay vì xử lý trong update()
+                this.jump();
                 break;
         }
     }
@@ -100,13 +110,20 @@ export class CharacterController {
             return;
         }
 
-        const start = this.body.position;
-        const end = new Vec3(start.x, start.y - this.groundCheckDistance, start.z);
+        // Raycast bắt đầu cao hơn một chút so với tâm để không bắt đầu bên trong collider mặt đất
+        const rayStart = new Vec3(this.body.position.x, this.body.position.y + 0.05, this.body.position.z);
+        const rayEnd   = new Vec3(rayStart.x, rayStart.y - (this.groundCheckDistance + 0.1), rayStart.z);
 
         this.raycastResult.reset();
-        this.world.raycastClosest(start, end, {}, this.raycastResult);
+        this.world.raycastClosest(rayStart, rayEnd, {}, this.raycastResult);
 
+        const wasGround = this.isOnGround;
         this.isOnGround = this.raycastResult.hasHit && this.raycastResult.body !== this.body;
+
+        // Log khi trạng thái ground thay đổi
+        if (this.isOnGround !== wasGround) {
+            this.debugLog(`[ground] ${this.isOnGround ? 'Landed' : 'Left ground'} at y=${this.body.position.y.toFixed(2)}`);
+        }
     }
 
     updateAnimation(isMoving) {
@@ -127,6 +144,8 @@ export class CharacterController {
     }
 
     update(cameraRotationY, deltaTime) {
+        this.debugLog(`[frame] dt=${deltaTime.toFixed(3)} ground=${this.isOnGround} vel=(${this.body.velocity.x.toFixed(2)}, ${this.body.velocity.y.toFixed(2)}, ${this.body.velocity.z.toFixed(2)})`);
+
         this.checkGrounded();
     
         // Giảm jump cooldown
@@ -146,20 +165,7 @@ export class CharacterController {
         direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), cameraRotationY);
     
         // === Nhảy ===
-        if (this.keys.jump && this.isOnGround && this.jumpCooldown <= 0) {
-            // 🚫 Dừng chuyển động ngang hoàn toàn khi nhảy
-            this.body.velocity.x = 0;
-            this.body.velocity.z = 0;
-        
-            // ✅ Nhảy lên
-            this.body.velocity.y = this.jumpForce;
-            this.isOnGround = false;
-            this.jumpCooldown = 0.3;
-        
-            console.log(`🦘 Jump! velocity: (${this.body.velocity.x.toFixed(2)}, ${this.body.velocity.y.toFixed(2)}, ${this.body.velocity.z.toFixed(2)})`);
-        }
-        
-        console.log('✅ After jump:', this.body.velocity);
+        // (đã xử lý trực tiếp trong onKeyDown -> jump())
 
     
         // === Di chuyển ===
@@ -167,29 +173,58 @@ export class CharacterController {
             this.body.velocity.x = direction.x * this.speed;
             this.body.velocity.z = direction.z * this.speed;
         } else {
-            // Trên không: dùng air control nhẹ để tránh mất kiểm soát
-            const airControl = 0.05;
-            const targetX = direction.x * this.speed * 0.2;
-            const targetZ = direction.z * this.speed * 0.2;
-    
-            this.body.velocity.x = THREE.MathUtils.lerp(this.body.velocity.x, targetX, airControl);
-            this.body.velocity.z = THREE.MathUtils.lerp(this.body.velocity.z, targetZ, airControl);
+            // Trên không
+            if (this.body.velocity.y <= 0) {
+                // Chỉ cho phép điều chỉnh ngang khi đang rơi xuống
+                const airControl = 0.05;
+                const targetX = direction.x * this.speed * 0.2;
+                const targetZ = direction.z * this.speed * 0.2;
+
+                this.body.velocity.x = THREE.MathUtils.lerp(this.body.velocity.x, targetX, airControl);
+                this.body.velocity.z = THREE.MathUtils.lerp(this.body.velocity.z, targetZ, airControl);
+            }
         }
-    
-        // === Gravity thủ công (nếu bạn không để world.gravity hoạt động) ===
-        // Nếu world.gravity đã được set, bạn có thể bỏ dòng này
-        // this.body.velocity.y += -9.81 * deltaTime;
     
         // === Animation ===
         this.updateAnimation(isMoving);
     
-        // === Debug ===
-        if (isMoving || !this.isOnGround) {
-            const status = this.isOnGround ? "on ground" : "in air";
-            console.log(`🏃 [${status}] vel: (${this.body.velocity.x.toFixed(2)}, ${this.body.velocity.y.toFixed(2)}, ${this.body.velocity.z.toFixed(2)})`);
+        // === Debug summary when moving or in air ===
+        if (this.debug && (isMoving || !this.isOnGround)) {
+            const status = this.isOnGround ? 'on ground' : 'in air';
+            this.debugLog(`🏃 [${status}] vel: (${this.body.velocity.x.toFixed(2)}, ${this.body.velocity.y.toFixed(2)}, ${this.body.velocity.z.toFixed(2)})`);
         }
     }
     
+    /**
+     * Thực hiện nhảy đơn giản: chỉ khi đang đứng trên mặt đất.
+     */
+    jump() {
+        // Cool-down tránh spam
+        if (this.jumpCooldown > 0) return;
+
+        // Cập nhật lại trạng thái ground để chắc chắn
+        this.checkGrounded();
+
+        if (!this.isOnGround) {
+            this.debugLog('Cannot jump: not on ground');
+            return;
+        }
+
+        this.debugLog('Jumping with force:', this.jumpForce);
+
+        // Giữ nguyên vận tốc ngang, chỉ thêm vận tốc trục Y
+        this.body.velocity.y = this.jumpForce;
+        this.isOnGround = false;
+
+        // Thiết lập cooldown
+        this.jumpCooldown = 0.3;
+
+        // Play jump animation nếu có
+        if (this.character && this.character.userData.jumpAction) {
+            const jumpAction = this.character.userData.jumpAction;
+            jumpAction.reset().play();
+        }
+    }
 
     destroy() {
         document.removeEventListener('keydown', this.onKeyDown);

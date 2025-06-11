@@ -8,7 +8,7 @@ export function loadCharacter(scene) {
       const character = gltf.scene;
       // Giảm kích thước nhân vật nhỏ hơn để phù hợp tỉ lệ thế giới
       character.scale.set(0.001, 0.001, 0.001);
-      character.position.set(0, 5, 0);
+      character.position.set(0, 4, 0);
       scene.add(character);
       resolve(character);
     });
@@ -22,7 +22,7 @@ export function loadCharacterWithPhysics(scene, physicsWorld) {
       const character = gltf.scene;
       // Giảm kích thước nhân vật nhỏ hơn để phù hợp tỉ lệ thế giới
       character.scale.set(0.002, 0.002, 0.002);
-      character.position.set(0, 2, 0); // Spawn vừa phải, rơi xuống ground plane
+      character.position.set(0, 4, 0); // Spawn vừa phải, rơi xuống ground plane
       
       // Tạo AnimationMixer cho character
       const mixer = new THREE.AnimationMixer(character);
