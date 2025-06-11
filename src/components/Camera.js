@@ -5,7 +5,7 @@ export class CameraSystem {
         this.camera = camera;
         this.renderer = renderer;
         this.target = new THREE.Vector3();
-        this.offset = new THREE.Vector3(0, 0.6, 0.01); // Position camera behind and slightly above character
+        this.offset = new THREE.Vector3(0, 0.8, 0.01); // Position camera behind and slightly above character
         this.currentRotation = new THREE.Euler();
         this.sensitivity = 0.002;
     }

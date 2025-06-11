@@ -1,29 +1,24 @@
 import * as THREE from 'three';
-import { createScene } from './core/Scene.js';
+import { Scene } from './components/Lights.js';
 import { CameraSystem } from './components/Camera.js';
-import { createLights } from './components/Lights.js';
 import { loadCharacter } from './components/Character.js';
 import { loadWorld } from './components/World.js';
 
-const scene = createScene();
-const { ambientLight, directionalLight } = createLights();
-scene.add(ambientLight, directionalLight);
+// Khởi tạo scene mới
+const gameScene = new Scene();
+gameScene.setupLights();
 
-const canvas = document.querySelector('canvas.webgl');
-const renderer = new THREE.WebGLRenderer({ canvas });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const cameraSystem = new CameraSystem(camera, renderer);
+const cameraSystem = new CameraSystem(gameScene.camera, gameScene.renderer);
 
 let character;
 
-loadWorld(scene);
-loadCharacter(scene).then((loadedCharacter) => {
+loadWorld(gameScene.scene);
+loadCharacter(gameScene.scene).then((loadedCharacter) => {
   character = loadedCharacter;
   cameraSystem.setup(character);
 });
+
+const canvas = document.querySelector('canvas.webgl');
 
 canvas.addEventListener('click', () => {
     canvas.requestPointerLock();
@@ -48,15 +43,12 @@ function animate() {
   if (cameraSystem) {
     cameraSystem.update(character, deltaTime);
   }
-  renderer.render(scene, camera);
+  gameScene.renderer.render(gameScene.scene, gameScene.camera);
   window.requestAnimationFrame(animate);
 }
 
 animate();
 
 window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  gameScene.handleResize();
 });
