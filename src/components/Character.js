@@ -15,8 +15,8 @@ export function loadCharacter(scene) {
   });
 }
 
-export function loadCharacterWithPhysics(scene, physicsWorld) {
-  return new Promise((resolve) => {
+export function loadCharacterWithPhysics(scene, physicsWorld, audioListener) { // Added audioListener
+  return new Promise((resolve, reject) => { // Added reject for error handling
     const loader = new GLTFLoader();
     loader.load('models/character/luoli_run.glb', (gltf) => {
       const character = gltf.scene;
@@ -89,6 +89,60 @@ export function loadCharacterWithPhysics(scene, physicsWorld) {
       character.userData.runAction = runAction;
       character.userData.idleAction = idleAction;
       character.userData.isMoving = false;
+
+      // Load sounds
+      const soundLoader = new THREE.AudioLoader();
+      let jumpSound, runSound;
+
+      const soundsToLoad = [
+        { name: 'jumpSound', path: 'sound/jump.mp3' },
+        { name: 'runSound', path: 'sound/run.mp3' }
+      ];
+      let soundsLoaded = 0;
+
+      soundsToLoad.forEach(soundInfo => {
+        soundLoader.load(soundInfo.path, (buffer) => {
+          const sound = new THREE.Audio(audioListener);
+          sound.setBuffer(buffer);
+          if (soundInfo.name === 'runSound') {
+            sound.setLoop(true); // Loop running sound
+            sound.setVolume(0.5); // Adjust volume as needed
+            runSound = sound;
+            character.userData.runSound = runSound;
+          } else if (soundInfo.name === 'jumpSound') {
+            sound.setVolume(0.7); // Adjust volume as needed
+            jumpSound = sound;
+            character.userData.jumpSound = jumpSound;
+          }
+          soundsLoaded++;
+          if (soundsLoaded === soundsToLoad.length) {
+            console.log('🔊 All character sounds loaded!');
+            resolve({
+              mesh: character,
+              body: characterBody,
+              mixer: mixer,
+              runAction: runAction,
+              idleAction: idleAction,
+              // Sounds are attached to character.userData directly
+            });
+          }
+        }, undefined, (error) => {
+          console.error(`Error loading sound ${soundInfo.path}:`, error);
+          // Potentially reject or resolve without this sound
+          soundsLoaded++;
+          if (soundsLoaded === soundsToLoad.length) {
+             // Resolve even if some sounds failed, to not block game load
+            console.warn('Proceeding with character load despite some sound errors.');
+            resolve({
+              mesh: character,
+              body: characterBody,
+              mixer: mixer,
+              runAction: runAction,
+              idleAction: idleAction
+            });
+          }
+        });
+      });
       
       // Debug: log collisions
       characterBody.addEventListener('collide', (event) => {
@@ -96,15 +150,19 @@ export function loadCharacterWithPhysics(scene, physicsWorld) {
         console.log(`🤝 Character collided with body id=${other.id}, meshName=${other.meshName || 'N/A'}`);
       });
       
-      console.log('✅ Character loaded with physics and animations!');
+      // console.log('✅ Character loaded with physics and animations!');
       
-      resolve({
-        mesh: character,
-        body: characterBody,
-        mixer: mixer,
-        runAction: runAction,
-        idleAction: idleAction
-      });
+      // Resolve is now handled after sounds are loaded (or failed)
+      // resolve({
+      //   mesh: character,
+      //   body: characterBody,
+      //   mixer: mixer,
+      //   runAction: runAction,
+      //   idleAction: idleAction
+      // });
+    }, undefined, (error) => { // Added error callback for GLTFLoader
+        console.error('Error loading character model:', error);
+        reject(error);
     });
   });
-} 
+}

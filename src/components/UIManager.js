@@ -6,6 +6,7 @@ class UIManager {
         this.startButton = document.getElementById('start-button');
         this.continueButton = document.getElementById('continue-button');
         this.exitButton = document.getElementById('exit-button');
+        this.toggleMusicButton = document.getElementById('toggle-music-button'); // Get the new button
         this.levelElement = document.getElementById('level');
         this.speedElement = document.getElementById('speed');
         this.timeElement = document.getElementById('time');
@@ -26,6 +27,7 @@ class UIManager {
         this.continueButton.addEventListener('click', () => this.togglePauseMenu());
         this.exitButton.addEventListener('click', () => this.exitGame());
         this.playAgainButton.addEventListener('click', () => this.startGame());
+        this.toggleMusicButton.addEventListener('click', () => this.toggleMusic()); // Add event listener
 
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape' && this.isGameStarted) {
@@ -60,6 +62,8 @@ class UIManager {
         this.isGamePaused = !this.isGamePaused;
         if (this.isGamePaused) {
             this.showPauseMenu();
+            // Update button text when menu is shown
+            this.updateToggleMusicButtonText(); 
         } else {
             this.hidePauseMenu();
             this.callbacks.onResumeGame?.();
@@ -78,6 +82,23 @@ class UIManager {
         this.isGamePaused = false;
         this.showLoginScreen();
         this.callbacks.onExitGame?.();
+        // Reset music button text when exiting
+        this.updateToggleMusicButtonText(true); 
+    }
+
+    // New method to toggle music
+    toggleMusic() {
+        this.callbacks.onToggleMusic?.();
+        this.updateToggleMusicButtonText();
+    }
+
+    // New method to update button text
+    updateToggleMusicButtonText(forceMutedText = false) {
+        if (this.callbacks.isMusicPlaying && !forceMutedText && this.callbacks.isMusicPlaying()) {
+            this.toggleMusicButton.textContent = 'Mute Music';
+        } else {
+            this.toggleMusicButton.textContent = 'Unmute Music';
+        }
     }
 
     showWinningScreen() {
@@ -95,4 +116,4 @@ class UIManager {
     }
 }
 
-export default UIManager; 
+export default UIManager;
