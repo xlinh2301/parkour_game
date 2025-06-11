@@ -1,7 +1,21 @@
-body {
-    margin: 0;
-    overflow: hidden; /* Ẩn thanh cuộn */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
+
+html,
+body {
+  overflow: hidden;
+}
+
+.webgl {
+  position: fixed;
+  top: 0;
+  left: 0;
+  outline: none;
+}
+
 #app {
     width: 100vw;
     height: 100vh;
