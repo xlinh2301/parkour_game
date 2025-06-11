@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Scene } from './components/Lights.js';
 import { CameraSystem } from './components/Camera.js';
 import { loadCharacterWithPhysics } from './components/Character.js';
@@ -69,6 +70,40 @@ uiManager.showLoginScreen();
 const gameScene = new Scene();
 gameScene.setupLights();
 
+// --- Tải Skybox ---
+const gltfLoader = new GLTFLoader();
+gltfLoader.load(
+    '../public/models/skybox/cityskyline.glb', // Đường dẫn đến file skybox của bạn
+    (gltf) => {
+        let skyboxTexture = null;
+
+        // Duyệt qua tất cả các đối tượng con trong model đã tải
+        gltf.scene.traverse(function(node) {
+            // Nếu tìm thấy một mesh có vật liệu và texture map
+            if (node.isMesh && node.material && node.material.map) {
+                skyboxTexture = node.material.map;
+            }
+        });
+
+        if (skyboxTexture) {
+            // Thiết lập cách THREE.js diễn giải texture này
+            skyboxTexture.mapping = THREE.EquirectangularReflectionMapping;
+            
+            // Gán texture làm background cho scene
+            gameScene.scene.background = skyboxTexture;
+            
+            console.log('✅ Skybox loaded and set as background.');
+        } else {
+            console.error('❌ Could not find a texture map in the loaded skybox model.');
+        }
+    },
+    undefined, // Bỏ qua callback tiến trình
+    (error) => {
+        console.error('An error happened while loading the skybox:', error);
+    }
+);
+// --- Kết thúc tải Skybox ---
+
 // Khởi tạo physics world
 const physicsWorld = new PhysicsWorld();
 
@@ -102,6 +137,13 @@ loadWorldWithPhysics(gameScene.scene, physicsWorld).then(() => {
           characterController.spawnPosition.copy(other.position);
         }
         console.log(`🏁 Reached checkpoint ${cpId}`);
+
+        // --- Kiểm tra điều kiện chiến thắng ---
+        if (level >= 6) {
+            uiManager.showWinningScreen();
+            console.log('🏆 Player has won the game!');
+        }
+        // --- Kết thúc kiểm tra ---
       }
     }
   });
@@ -175,7 +217,7 @@ function animate() {
   }
 
   // Update physics debug visuals
-  cannonDebugger.update();
+  // cannonDebugger.update();
   
   // Render
   gameScene.renderer.render(gameScene.scene, gameScene.camera);

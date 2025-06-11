@@ -11,6 +11,8 @@ class UIManager {
         this.speedElement = document.getElementById('speed');
         this.timeElement = document.getElementById('time');
         this.scoreElement = document.getElementById('score');
+        this.winningScreen = document.getElementById('winning-screen');
+        this.playAgainButton = document.getElementById('play-again-button');
 
         this.isGamePaused = false;
         this.isGameStarted = false;
@@ -24,6 +26,7 @@ class UIManager {
         this.startButton.addEventListener('click', () => this.startGame());
         this.continueButton.addEventListener('click', () => this.togglePauseMenu());
         this.exitButton.addEventListener('click', () => this.exitGame());
+        this.playAgainButton.addEventListener('click', () => this.startGame());
         this.toggleMusicButton.addEventListener('click', () => this.toggleMusic()); // Add event listener
 
         document.addEventListener('keydown', (event) => {
@@ -37,12 +40,14 @@ class UIManager {
         this.loginScreen.style.display = 'flex';
         this.inGameUI.style.display = 'none';
         this.pauseMenu.style.display = 'none';
+        this.winningScreen.style.display = 'none';
     }
 
     showInGameUI() {
         this.loginScreen.style.display = 'none';
         this.inGameUI.style.display = 'block';
         this.pauseMenu.style.display = 'none';
+        this.winningScreen.style.display = 'none';
     }
 
     showPauseMenu() {
@@ -94,6 +99,13 @@ class UIManager {
         } else {
             this.toggleMusicButton.textContent = 'Unmute Music';
         }
+    }
+
+    showWinningScreen() {
+        this.isGamePaused = true;
+        this.inGameUI.style.display = 'none';
+        this.winningScreen.style.display = 'flex';
+        document.exitPointerLock();
     }
 
     updateInGameUI(level, speed, time, score) {
