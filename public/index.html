@@ -5,6 +5,7 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Parkour Game</title>
+    <link rel="stylesheet" href="style.css">
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
     <script type="importmap">
         {
@@ -19,6 +20,31 @@
   </head>
   <body>
     <canvas class="webgl"></canvas>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="overlay">
+      <div class="dialog">
+        <h1>Parkour Game</h1>
+        <button id="start-button">Start Game</button>
+      </div>
+    </div>
+
+    <!-- Pause Menu (ESC) -->
+    <div id="pause-menu" class="overlay hidden">
+      <div class="dialog">
+        <button id="continue-button">Resume</button>
+        <button id="exit-button">Exit</button>
+      </div>
+    </div>
+
+    <!-- HUD -->
+    <div id="in-game-ui" class="hud hidden">
+      <div id="level">Level: 0</div>
+      <div id="speed">Speed: 0.00</div>
+      <div id="time">Time: 0.00s</div>
+      <div id="score">Score: 0</div>
+    </div>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

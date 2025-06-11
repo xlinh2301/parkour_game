@@ -25,6 +25,22 @@ export class PhysicsWorld {
         this.world.addContactMaterial(defaultContactMaterial);
         this.world.defaultContactMaterial = defaultContactMaterial;
         
+        // Character material - zero friction to avoid getting stuck on edges
+        this.characterMaterial = new Material('character');
+        const charDefaultContact = new ContactMaterial(
+            this.defaultMaterial,
+            this.characterMaterial,
+            { friction: 0.0, restitution: 0.1 }
+        );
+        this.world.addContactMaterial(charDefaultContact);
+
+        const charCharContact = new ContactMaterial(
+            this.characterMaterial,
+            this.characterMaterial,
+            { friction: 0.0, restitution: 0.1 }
+        );
+        this.world.addContactMaterial(charCharContact);
+        
         this.staticBodies = [];
         this.dynamicBodies = [];
     }
@@ -125,13 +141,13 @@ export class PhysicsWorld {
     createCharacterBody(position = { x: 0, y: 1, z: 0 }) {
         const characterShape = new Box(new Vec3(0.3, 0.9, 0.3));
         const characterBody = new Body({ 
-            mass: 0,  // Thay đổi từ 0 thành 1 để nhân vật có thể di chuyển
+            mass: 1,  // Set to 1 to allow movement
             fixedRotation: true,  // Giữ cho nhân vật không bị lật ngã
             // position: new Vec3(0, 0.01, 0)
         }); 
         characterBody.addShape(characterShape);
         characterBody.position.set(position.x, position.y, position.z);
-        characterBody.material = this.defaultMaterial;
+        characterBody.material = this.characterMaterial;
         
         characterBody.updateMassProperties();
         
@@ -241,7 +257,7 @@ export class PhysicsWorld {
         body.addShape(shape, shapeOffset);
         body.position.set(finalPosition.x, finalPosition.y, finalPosition.z);
         body.quaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
-        body.material = this.defaultMaterial;
+        body.material = this.characterMaterial;
         body.meshName = mesh.name || 'unnamed';
 
         this.world.addBody(body);

@@ -6,6 +6,53 @@ import { loadWorldWithPhysics } from './components/World.js';
 import { PhysicsWorld } from './components/Physics.js';
 import { CharacterController } from './components/CharacterController.js';
 import CannonDebugger from 'cannon-es-debugger';
+import { Vec3 } from 'cannon-es';
+import UIManager from './components/UIManager.js';
+
+// Game state
+let character = null;
+let characterBody = null;
+let characterController = null;
+let animationMixer = null;
+let gameTime = 0;
+let score = 0;
+let level = 0;
+const initialSpawnPos = new Vec3(0, 2, 0);
+
+function resetGame() {
+    gameTime = 0;
+    score = 0;
+    level = 0;
+    if (characterBody) {
+        characterBody.position.copy(initialSpawnPos);
+        characterBody.velocity.set(0, 0, 0);
+        characterBody.angularVelocity.set(0, 0, 0);
+    }
+    if(characterController) {
+        characterController.spawnPosition.copy(initialSpawnPos);
+    }
+}
+
+function requestPointerLock() {
+    const canvas = document.querySelector('canvas.webgl');
+    if (canvas) canvas.requestPointerLock();
+}
+
+// UI Manager
+const uiManager = new UIManager({
+    onStartGame: () => {
+        resetGame();
+        requestPointerLock();
+    },
+    onExitGame: () => {
+        resetGame();
+        document.exitPointerLock();
+    },
+    onResumeGame: () => {
+        requestPointerLock();
+    }
+});
+uiManager.showLoginScreen();
 
 // Khởi tạo scene mới
 const gameScene = new Scene();
@@ -19,11 +66,6 @@ const physicsWorld = new PhysicsWorld();
 
 const cameraSystem = new CameraSystem(gameScene.camera, gameScene.renderer);
 
-let character = null;
-let characterBody = null;
-let characterController = null;
-let animationMixer = null;
-
 // Load world với physics TRƯỚC, sau đó mới load character
 loadWorldWithPhysics(gameScene.scene, physicsWorld).then(() => {
     console.log('🌍 World loaded with physics!');
@@ -33,8 +75,25 @@ loadWorldWithPhysics(gameScene.scene, physicsWorld).then(() => {
 }).then((characterData) => {
   character = characterData.mesh;
   characterBody = characterData.body;
+  characterBody.position.copy(initialSpawnPos);
   animationMixer = characterData.mixer;
   characterController = new CharacterController(characterBody, character, physicsWorld.world, true);
+  // Đăng ký va chạm checkpoint
+  characterBody.addEventListener('collide', (event) => {
+    const other = event.body;
+    if (other && other.meshName && other.meshName.startsWith('checkpoint_')) {
+      const idStr = other.meshName.split('_')[1];
+      const cpId = parseInt(idStr,10);
+      if (!isNaN(cpId) && cpId > level) {
+        level = cpId;
+        score += 100;
+        if (characterController) {
+          characterController.spawnPosition.copy(other.position);
+        }
+        console.log(`🏁 Reached checkpoint ${cpId}`);
+      }
+    }
+  });
   cameraSystem.setup(character);
   console.log('👤 Character setup complete with animations!');
 }).catch((error) => {
@@ -56,7 +115,9 @@ document.addEventListener('pointerlockchange', () => {
 });
 
 function onMouseMove(event) {
-    cameraSystem.handleMouseMove(event, character);
+    if (!uiManager.isGamePaused) {
+        cameraSystem.handleMouseMove(event, character);
+    }
 }
 
 const clock = new THREE.Clock();
@@ -69,6 +130,13 @@ const cannonDebugger = CannonDebugger(gameScene.scene, physicsWorld.world, {
 function animate() {
   const deltaTime = clock.getDelta();
   
+  if (!uiManager.isGameStarted || uiManager.isGamePaused) {
+    window.requestAnimationFrame(animate);
+    return;
+  }
+  
+  gameTime += deltaTime;
+  
   // Update physics first
   physicsWorld.step(deltaTime);
   
@@ -76,10 +144,8 @@ function animate() {
   if (character && characterBody) {
     physicsWorld.syncObject(character, characterBody);
     
-    // Debug: Log character position occasionally
-    // if (Math.floor(Date.now() / 1000) % 2 === 0) {
-    //   console.log(`Character position: (${characterBody.position.x.toFixed(2)}, ${characterBody.position.y.toFixed(2)}, ${characterBody.position.z.toFixed(2)}), velocity.y: ${characterBody.velocity.y.toFixed(2)}`);
-    // }
+    const speed = characterBody.velocity.length();
+    uiManager.updateInGameUI(level, speed, gameTime, score);
   }
   
   // Update camera
