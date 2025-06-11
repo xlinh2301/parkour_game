@@ -141,7 +141,9 @@ export class PhysicsWorld {
 
     // Update physics
     step(deltaTime) {
-        this.world.step(deltaTime);
+        const fixedTimeStep = 1 / 60;       // 60 Hz
+        const maxSubSteps   = 5;            // tối đa 5 bước phụ nếu khung hình chậm
+        this.world.step(fixedTimeStep, deltaTime, maxSubSteps);
     }
 
     // Sync Three.js object với Cannon body
@@ -170,6 +172,7 @@ export class PhysicsWorld {
         let size, finalPosition, quaternion;
 
         if (mesh.geometry) {
+            console.log('mesh.geometry', mesh.geometry);
             // clone geometry and compute bounding box in local space
             const geometry = mesh.geometry.clone();
             geometry.computeBoundingBox();
@@ -207,18 +210,23 @@ export class PhysicsWorld {
 
             geometry.dispose();
         } else {
+            console.log('Character mesh.geometry');
             // Fallback for Group/Object3D without geometry: use world bounding box
             const worldBox = new THREE.Box3().setFromObject(mesh);
             size = new THREE.Vector3();
             worldBox.getSize(size);
+            console.log('Character size: ', size)
             finalPosition = new THREE.Vector3();
             worldBox.getCenter(finalPosition);
+            console.log('worldBox size: ', worldBox.getCenter(finalPosition))
+
             quaternion = new THREE.Quaternion(); // identity
             // Ensure min thickness
             const minSize = 0.02;
             size.x = Math.max(size.x, minSize);
             size.y = Math.max(size.y, minSize);
             size.z = Math.max(size.z, minSize);
+            console.log('size x: ', size.x, 'size y: ', size.y, 'size z: ', size.z)
         }
 
         // Apply shrink factors (allow slimming X/Z while preserving height)
@@ -229,7 +237,8 @@ export class PhysicsWorld {
         // Make shape with shrunk size
         const shape = new Box(new Vec3(size.x / 2, size.y / 2, size.z / 2));
         const body = new Body({ mass, fixedRotation });
-        body.addShape(shape);
+        const shapeOffset = new Vec3(0, size.y * 0.5, 0);  // dịch shape lên nửa chiều cao
+        body.addShape(shape, shapeOffset);
         body.position.set(finalPosition.x, finalPosition.y, finalPosition.z);
         body.quaternion.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
         body.material = this.defaultMaterial;
