@@ -8,7 +8,7 @@ export class CharacterController {
         this.world = world;
 
         this.speed = 1; // Walking speed
-        this.sprintSpeed = 2; // Running speed when Shift held
+        this.sprintSpeed = 1.75; // Running speed when Shift held
         this.jumpForce = 2.5; // Nhảy nhẹ hơn
 
         this.keys = {
