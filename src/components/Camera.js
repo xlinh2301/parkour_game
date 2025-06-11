@@ -42,8 +42,11 @@ export class CameraSystem {
         // Update camera rotation
         this.camera.rotation.copy(this.currentRotation);
 
-        // Update character rotation to match camera's horizontal rotation
-        character.rotation.y = this.currentRotation.y;
+        // Update character's physical body rotation to match camera's horizontal rotation
+        if (character && character.userData.physicsBody) {
+            const physicsBody = character.userData.physicsBody;
+            physicsBody.quaternion.setFromEuler(0, this.currentRotation.y, 0, 'YXZ');
+        }
     }
 
     update(character, deltaTime) {
