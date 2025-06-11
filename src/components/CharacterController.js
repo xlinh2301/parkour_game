@@ -7,15 +7,17 @@ export class CharacterController {
         this.character = character;
         this.world = world;
 
-        this.speed = 12;
-        this.jumpForce = 2; // Nhảy nhẹ hơn
+        this.speed = 8; // Walking speed
+        this.sprintSpeed = 16; // Running speed when Shift held
+        this.jumpForce = 2.5; // Nhảy nhẹ hơn
 
         this.keys = {
             forward: false,
             backward: false,
             left: false,
             right: false,
-            jump: false
+            jump: false,
+            sprint: false
         };
 
         this.inputVelocity = new Vec3();
@@ -31,6 +33,10 @@ export class CharacterController {
 
         this.jumpCooldown = 0;
         this.debug = debug;
+
+        // ----- Reset & spawn -----
+        this.spawnPosition = new Vec3(body.position.x, body.position.y, body.position.z);
+        this.resetThreshold = -5; // nếu y thấp hơn ngưỡng này sẽ reset
 
         // Helper: gói gọn console.log theo flag debug
         this.debugLog = (...args) => {
@@ -70,6 +76,10 @@ export class CharacterController {
                 // Gọi trực tiếp hàm jump thay vì xử lý trong update()
                 this.jump();
                 break;
+            case 'ShiftLeft':
+            case 'ShiftRight':
+                this.keys.sprint = true;
+                break;
         }
     }
 
@@ -93,6 +103,10 @@ export class CharacterController {
                 break;
             case 'Space':
                 this.keys.jump = false;
+                break;
+            case 'ShiftLeft':
+            case 'ShiftRight':
+                this.keys.sprint = false;
                 break;
         }
     }
@@ -169,16 +183,18 @@ export class CharacterController {
 
     
         // === Di chuyển ===
+        const moveSpeed = this.keys.sprint ? this.sprintSpeed : this.speed;
+
         if (this.isOnGround) {
-            this.body.velocity.x = direction.x * this.speed;
-            this.body.velocity.z = direction.z * this.speed;
+            this.body.velocity.x = direction.x * moveSpeed;
+            this.body.velocity.z = direction.z * moveSpeed;
         } else {
             // Trên không
             if (this.body.velocity.y <= 0) {
                 // Chỉ cho phép điều chỉnh ngang khi đang rơi xuống
                 const airControl = 0.05;
-                const targetX = direction.x * this.speed * 0.2;
-                const targetZ = direction.z * this.speed * 0.2;
+                const targetX = direction.x * moveSpeed * 0.2;
+                const targetZ = direction.z * moveSpeed * 0.2;
 
                 this.body.velocity.x = THREE.MathUtils.lerp(this.body.velocity.x, targetX, airControl);
                 this.body.velocity.z = THREE.MathUtils.lerp(this.body.velocity.z, targetZ, airControl);
@@ -192,6 +208,11 @@ export class CharacterController {
         if (this.debug && (isMoving || !this.isOnGround)) {
             const status = this.isOnGround ? 'on ground' : 'in air';
             this.debugLog(`🏃 [${status}] vel: (${this.body.velocity.x.toFixed(2)}, ${this.body.velocity.y.toFixed(2)}, ${this.body.velocity.z.toFixed(2)})`);
+        }
+
+        // === Check fall below ground threshold ===
+        if (this.body.position.y < this.resetThreshold) {
+            this.resetToSpawn();
         }
     }
     
@@ -224,6 +245,17 @@ export class CharacterController {
             const jumpAction = this.character.userData.jumpAction;
             jumpAction.reset().play();
         }
+    }
+
+    /** Reset nhân vật về vị trí spawn gốc */
+    resetToSpawn() {
+        this.debugLog('[reset] Falling below threshold, resetting character');
+
+        this.body.position.set(this.spawnPosition.x, this.spawnPosition.y, this.spawnPosition.z);
+        this.body.velocity.set(0, 0, 0);
+        this.body.angularVelocity.set(0, 0, 0);
+        this.isOnGround = false;
+        this.jumpCooldown = 0;
     }
 
     destroy() {

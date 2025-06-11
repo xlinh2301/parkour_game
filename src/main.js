@@ -15,7 +15,7 @@ gameScene.setupLights();
 const physicsWorld = new PhysicsWorld();
 
 // Tạo ground plane cơ bản
-physicsWorld.createGroundPlane();
+// physicsWorld.createGroundPlane();
 
 const cameraSystem = new CameraSystem(gameScene.camera, gameScene.renderer);
 
