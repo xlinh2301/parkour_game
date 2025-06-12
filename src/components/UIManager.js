@@ -5,8 +5,11 @@ class UIManager {
         this.pauseMenu = document.getElementById('pause-menu');
         this.winningScreen = document.getElementById('winning-screen');
         this.losingScreen = document.getElementById('losing-screen');
+        this.howToPlayModal = document.getElementById('how-to-play-modal');
 
         this.startButton = document.getElementById('start-button');
+        this.howToPlayButton = document.getElementById('how-to-play-button');
+        this.closeHowToPlayButton = document.getElementById('close-how-to-play-button');
         this.continueButton = document.getElementById('continue-button');
         this.exitButton = document.getElementById('exit-button');
         this.toggleMusicButton = document.getElementById('toggle-music-button');
@@ -20,6 +23,8 @@ class UIManager {
         
         // Final stats elements
         this.finalHealthElement = document.getElementById('final-health');
+        this.finalScoreElement = document.getElementById('final-score');
+        this.finalScoreLoseElement = document.getElementById('final-score-lose');
 
         this.isGamePaused = false;
         this.isGameStarted = false;
@@ -32,6 +37,8 @@ class UIManager {
 
     setupEventListeners() {
         this.startButton.addEventListener('click', () => this.startGame());
+        this.howToPlayButton.addEventListener('click', () => this.showHowToPlayModal());
+        this.closeHowToPlayButton.addEventListener('click', () => this.hideHowToPlayModal());
         this.continueButton.addEventListener('click', () => this.togglePauseMenu());
         this.exitButton.addEventListener('click', () => this.exitGame());
         this.playAgainButton.addEventListener('click', () => this.startGame());
@@ -51,6 +58,7 @@ class UIManager {
         this.pauseMenu.style.display = 'none';
         this.winningScreen.style.display = 'none';
         this.losingScreen.style.display = 'none';
+        this.howToPlayModal.style.display = 'none';
     }
 
     showInGameUI() {
@@ -59,6 +67,7 @@ class UIManager {
         this.pauseMenu.style.display = 'none';
         this.winningScreen.style.display = 'none';
         this.losingScreen.style.display = 'none';
+        this.howToPlayModal.style.display = 'none';
     }
 
     showPauseMenu() {
@@ -113,20 +122,27 @@ class UIManager {
     }
 
     showWinningScreen(stats) {
-        this.winningScreen.style.display = 'flex';
+        this.isGamePaused = true;
         this.inGameUI.style.display = 'none';
-        this.finalHealthElement.textContent = stats.health;
-        // this.finalTimeElement.textContent = stats.time; // Assuming you might add this later
-
-        if (this.callbacks.onGameWin) {
-            this.callbacks.onGameWin(stats.level); // Pass the current level
+        this.winningScreen.style.display = 'flex';
+        
+        if (stats) {
+            this.finalHealthElement.textContent = stats.health;
+            this.finalScoreElement.textContent = stats.score;
         }
+
+        document.exitPointerLock();
     }
 
-    showLosingScreen() {
+    showLosingScreen(stats) {
         this.isGamePaused = true;
         this.inGameUI.style.display = 'none';
         this.losingScreen.style.display = 'flex';
+        
+        if (stats) {
+            this.finalScoreLoseElement.textContent = stats.score;
+        }
+        
         document.exitPointerLock();
     }
 
@@ -149,6 +165,14 @@ class UIManager {
             this.healthBarElement.style.width = `${data.health}%`;
             this.healthTextElement.textContent = data.health;
         }
+    }
+
+    showHowToPlayModal() {
+        this.howToPlayModal.style.display = 'flex';
+    }
+
+    hideHowToPlayModal() {
+        this.howToPlayModal.style.display = 'none';
     }
 }
 

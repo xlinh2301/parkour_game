@@ -18,6 +18,7 @@ let characterController = null;
 let animationMixer = null;
 let gameTime = 0;
 let health = 100;
+let score = 0;
 let level = 0;
 let lastDeathCount = 0;
 let particleManager = null;
@@ -26,6 +27,7 @@ const initialSpawnPos = new Vec3(0, 2, 0);
 function resetGame() {
     gameTime = 0;
     health = 100;
+    score = 0;
     level = 0;
     lastDeathCount = 0;
 
@@ -175,7 +177,8 @@ loadWorldWithPhysics(gameScene.scene, physicsWorld).then(() => {
 
         // --- Kiểm tra điều kiện chiến thắng ---
         if (level >= 6) {
-            uiManager.showWinningScreen({ health: health });
+            score = calculateScore();
+            uiManager.showWinningScreen({ health: health, score: score });
             console.log('🏆 Player has won the game!');
         }
         // --- Kết thúc kiểm tra ---
@@ -215,6 +218,16 @@ const cannonDebugger = CannonDebugger(gameScene.scene, physicsWorld.world, {
   color: 0xff0000
 });
 
+function calculateScore() {
+    const healthBonus = health * 50;
+    const timePenalty = Math.floor(gameTime) * 10;
+    const deathPenalty = (characterController ? characterController.deathCount : 0) * 200;
+    
+    // Score cannot be negative
+    const finalScore = Math.max(0, healthBonus - timePenalty - deathPenalty);
+    return finalScore;
+}
+
 function animate() {
   const deltaTime = clock.getDelta();
   
@@ -234,9 +247,18 @@ function animate() {
     health -= death_penalty;
     lastDeathCount = characterController.deathCount;
 
+    // Play death sound
+    if (character && character.userData.deathSound) {
+        if (character.userData.deathSound.isPlaying) {
+            character.userData.deathSound.stop();
+        }
+        character.userData.deathSound.play();
+    }
+
     if (health <= 0) {
         health = 0; // Prevent negative health display
-        uiManager.showLosingScreen();
+        score = calculateScore();
+        uiManager.showLosingScreen({ score: score });
     }
   }
 

@@ -34,7 +34,7 @@ export class Scene {
             this.backgroundMusic = new THREE.Audio(this.audioListener);
             this.backgroundMusic.setBuffer(buffer);
             this.backgroundMusic.setLoop(true);
-            this.backgroundMusic.setVolume(0.1); // User adjusted volume
+            this.backgroundMusic.setVolume(0.5); // Tăng âm lượng nhạc nền
             // Do not play here
             console.log('Background music loaded.');
         }, undefined, (error) => {

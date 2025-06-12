@@ -107,7 +107,8 @@ export function loadCharacterWithPhysics(scene, physicsWorld, audioListener) { /
 
       const soundsToLoad = [
         { name: 'jumpSound', path: 'sound/jump.mp3' },
-        { name: 'runSound', path: 'sound/run.mp3' }
+        { name: 'runSound', path: 'sound/run.mp3' },
+        { name: 'deathSound', path: 'sound/death.mp3' }
       ];
       let soundsLoaded = 0;
 
@@ -117,13 +118,20 @@ export function loadCharacterWithPhysics(scene, physicsWorld, audioListener) { /
           sound.setBuffer(buffer);
           if (soundInfo.name === 'runSound') {
             sound.setLoop(true); // Loop running sound
-            sound.setVolume(0.5); // Adjust volume as needed
+            sound.setVolume(1.0); // Tăng âm lượng chạy
             runSound = sound;
             character.userData.runSound = runSound;
           } else if (soundInfo.name === 'jumpSound') {
-            sound.setVolume(0.7); // Adjust volume as needed
+            sound.setVolume(1.0); // Tăng âm lượng nhảy
             jumpSound = sound;
             character.userData.jumpSound = jumpSound;
+          } else if (soundInfo.name === 'deathSound') {
+            sound.setVolume(2.0); // Âm lượng khi ch  ết
+            character.userData.deathSound = sound;
+            // Lưu trữ thời lượng của âm thanh
+            if (sound.buffer) {
+                character.userData.deathSoundDuration = sound.buffer.duration;
+            }
           }
           soundsLoaded++;
           if (soundsLoaded === soundsToLoad.length) {
