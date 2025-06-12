@@ -9,6 +9,7 @@ import { CharacterController } from './components/CharacterController.js';
 import CannonDebugger from 'cannon-es-debugger';
 import { Vec3 } from 'cannon-es';
 import UIManager from './components/UIManager.js';
+import { ParticleManager } from './components/ParticleManager.js';
 
 // Game state
 let character = null;
@@ -16,14 +17,25 @@ let characterBody = null;
 let characterController = null;
 let animationMixer = null;
 let gameTime = 0;
-let score = 0;
+let health = 100;
 let level = 0;
+let lastDeathCount = 0;
+let particleManager = null;
 const initialSpawnPos = new Vec3(0, 2, 0);
 
 function resetGame() {
     gameTime = 0;
-    score = 0;
+    health = 100;
     level = 0;
+    lastDeathCount = 0;
+
+    if (gameScene) {
+        gameScene.setEnvironment('day');
+    }
+    if (particleManager) {
+        particleManager.setWeather('rain'); // Start with rain
+    }
+
     if (characterBody) {
         characterBody.position.copy(initialSpawnPos);
         characterBody.velocity.set(0, 0, 0);
@@ -31,7 +43,10 @@ function resetGame() {
     }
     if(characterController) {
         characterController.spawnPosition.copy(initialSpawnPos);
+        characterController.deathCount = 0;
     }
+
+    particleManager = new ParticleManager(gameScene.scene, gameScene.camera);
 }
 
 function requestPointerLock() {
@@ -69,6 +84,7 @@ uiManager.showLoginScreen();
 // Khởi tạo scene mới
 const gameScene = new Scene();
 gameScene.setupLights();
+particleManager = new ParticleManager(gameScene.scene, gameScene.camera);
 
 // --- Tải Skybox ---
 const gltfLoader = new GLTFLoader();
@@ -90,7 +106,7 @@ gltfLoader.load(
             skyboxTexture.mapping = THREE.EquirectangularReflectionMapping;
             
             // Gán texture làm background cho scene
-            gameScene.scene.background = skyboxTexture;
+            gameScene.setDaySkybox(skyboxTexture);
             
             console.log('✅ Skybox loaded and set as background.');
         } else {
@@ -132,7 +148,26 @@ loadWorldWithPhysics(gameScene.scene, physicsWorld).then(() => {
       const cpId = parseInt(idStr,10);
       if (!isNaN(cpId) && cpId > level) {
         level = cpId;
-        score += 100;
+
+        // Add health only if it's not the final level
+        if (level < 6) {
+            health += 20;
+            health = Math.min(100, health); // Cap health at 100
+        }
+        
+        // Change environment based on level
+        const theme = (level <= 2) ? 'day' : 'night';
+        gameScene.setEnvironment(theme);
+        
+        // Add weather effects based on level
+        if (level === 1 || level === 2) {
+            particleManager.setWeather('rain');
+        } else if (level === 3 || level === 4 || level === 5) {
+            particleManager.setWeather('snow');
+        } else {
+            particleManager.setWeather('clear'); // Clear weather on other levels
+        }
+
         if (characterController) {
           characterController.spawnPosition.copy(other.position);
         }
@@ -140,7 +175,7 @@ loadWorldWithPhysics(gameScene.scene, physicsWorld).then(() => {
 
         // --- Kiểm tra điều kiện chiến thắng ---
         if (level >= 6) {
-            uiManager.showWinningScreen();
+            uiManager.showWinningScreen({ health: health });
             console.log('🏆 Player has won the game!');
         }
         // --- Kết thúc kiểm tra ---
@@ -193,12 +228,27 @@ function animate() {
   // Update physics first
   physicsWorld.step(deltaTime);
   
+  // Health and Lose Condition Check
+  if (characterController && characterController.deathCount > lastDeathCount) {
+    const death_penalty = 20;
+    health -= death_penalty;
+    lastDeathCount = characterController.deathCount;
+
+    if (health <= 0) {
+        health = 0; // Prevent negative health display
+        uiManager.showLosingScreen();
+    }
+  }
+
   // Sync character mesh with physics body
   if (character && characterBody) {
     physicsWorld.syncObject(character, characterBody);
     
-    const speed = characterBody.velocity.length();
-    uiManager.updateInGameUI(level, speed, gameTime, score);
+    uiManager.updateInGameUI({
+        level: level,
+        time: gameTime,
+        health: health
+    });
   }
   
   // Update camera
@@ -216,6 +266,11 @@ function animate() {
     animationMixer.update(deltaTime);
   }
 
+  // Update particle effects
+  if (particleManager) {
+    particleManager.update();
+  }
+  
   // Update physics debug visuals
   // cannonDebugger.update();
   

@@ -45,7 +45,7 @@ export function loadWorldWithPhysics(scene, physicsWorld) {
       // Duyệt qua tất cả objects trong model
       worldModel.traverse((child) => {
         if (child.isMesh) {
-          console.log('Processing mesh:', child.name || 'unnamed mesh');
+          // console.log('Processing mesh:', child.name || 'unnamed mesh');
           
           // Enable shadows
           child.castShadow = true;
