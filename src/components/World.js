@@ -29,29 +29,61 @@ export function loadWorld(scene) {
 export function loadWorldWithPhysics(scene, physicsWorld) {
   return new Promise((resolve) => {
     const loader = new GLTFLoader();
+    const textureLoader = new THREE.TextureLoader();
+    
+    // Load texture 1 (your rock texture)
+    const rockTexture = textureLoader.load('../public/texure/822.jpg', (texture) => {
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(2, 2);
+    });
+
+    // Load texture 2
+    const previewTexture = textureLoader.load('../public/texure/preview.jpg', (texture) => {
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(4, 4); // Use a different repeat for variety
+    });
+
+    // Load texture 3
+    const brightTexture = textureLoader.load('../public/texure/bright.jpg', (texture) => {
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(3, 3);
+    });
+
+    // Load texture 4
+    const abstractTexture = textureLoader.load('../public/texure/vivid-abstract-background-cubes.jpg', (texture) => {
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(1, 1); // No repeat for this one, to show the full abstract image
+    });
+
+    const textures = [rockTexture, previewTexture, brightTexture, abstractTexture];
+
     loader.load('models/environment/map.glb', (gltf) => {
       const worldModel = gltf.scene;
       
       console.log('Loading world with physics...');
       
-      // Add to scene first to ensure proper scene graph setup
       scene.add(worldModel);
       
-      // Force update the entire scene graph
       scene.updateMatrixWorld(true);
       
       let physicsBodyCount = 0;
       
-      // Duyệt qua tất cả objects trong model
       worldModel.traverse((child) => {
         if (child.isMesh) {
-          // console.log('Processing mesh:', child.name || 'unnamed mesh');
+          // Randomly choose which texture to apply
+          const chosenTexture = textures[Math.floor(Math.random() * textures.length)];
+
+          child.material = new THREE.MeshStandardMaterial({
+              map: chosenTexture
+          });
           
-          // Enable shadows
           child.castShadow = true;
           child.receiveShadow = true;
           
-          // Kích hoạt lại collision từ model parkour
           const physicsBody = physicsWorld.createBoxCollisionFromMesh(child);
           
           if (physicsBody) {
@@ -66,11 +98,9 @@ export function loadWorldWithPhysics(scene, physicsWorld) {
       
       resolve(worldModel);
     }, 
-    // Progress callback
     (progress) => {
       console.log('Loading progress:', (progress.loaded / progress.total * 100) + '%');
     },
-    // Error callback
     (error) => {
       console.error('Error loading world:', error);
     });
