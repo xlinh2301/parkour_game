@@ -23,6 +23,7 @@ class UIManager {
 
         this.isGamePaused = false;
         this.isGameStarted = false;
+        this.currentLevel = 0; // Store current level
 
         this.callbacks = callbacks;
 
@@ -112,15 +113,14 @@ class UIManager {
     }
 
     showWinningScreen(stats) {
-        this.isGamePaused = true;
-        this.inGameUI.style.display = 'none';
         this.winningScreen.style.display = 'flex';
-        
-        if (stats) {
-            this.finalHealthElement.textContent = stats.health;
-        }
+        this.inGameUI.style.display = 'none';
+        this.finalHealthElement.textContent = stats.health;
+        // this.finalTimeElement.textContent = stats.time; // Assuming you might add this later
 
-        document.exitPointerLock();
+        if (this.callbacks.onGameWin) {
+            this.callbacks.onGameWin(stats.level); // Pass the current level
+        }
     }
 
     showLosingScreen() {
@@ -131,10 +131,24 @@ class UIManager {
     }
 
     updateInGameUI(data) {
-        this.levelElement.textContent = `Level: ${data.level}`;
-        this.timeElement.textContent = `Time: ${data.time.toFixed(2)}s`;
-        this.healthBarElement.style.width = `${data.health}%`;
-        this.healthTextElement.textContent = data.health;
+        if (data.level !== undefined) {
+            if (data.level > this.currentLevel) {
+                this.levelElement.classList.add('level-up-animation');
+                // Remove the class after the animation completes
+                setTimeout(() => {
+                    this.levelElement.classList.remove('level-up-animation');
+                }, 500); // Duration of the animation in ms
+            }
+            this.currentLevel = data.level;
+            this.levelElement.textContent = `Level: ${data.level}`;
+        }
+        if (data.time !== undefined) {
+            this.timeElement.textContent = `Time: ${data.time.toFixed(2)}s`;
+        }
+        if (data.health !== undefined) {
+            this.healthBarElement.style.width = `${data.health}%`;
+            this.healthTextElement.textContent = data.health;
+        }
     }
 }
 

@@ -133,3 +133,21 @@ body {
 .dialog button:active {
   transform: translateY(0);
 }
+
+/* Trong file public/style.css */
+.level-up-animation {
+  animation: levelUpEffect 0.5s ease-in-out;
+  transform-origin: left center; /* Thêm dòng này */
+}
+
+@keyframes levelUpEffect {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.8); /* Phóng to lớn hơn */
+  }
+  100% {
+    transform: scale(1); /* Thu nhỏ lại */
+  }
+}
