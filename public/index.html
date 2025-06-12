@@ -41,17 +41,33 @@
     <!-- HUD -->
     <div id="in-game-ui" class="hud hidden">
       <div id="level">Level: 0</div>
-      <div id="speed">Speed: 0.00</div>
       <div id="time">Time: 0.00s</div>
-      <div id="score">Score: 0</div>
+      <div class="health-container">
+        <div id="health-bar-container">
+            <div id="health-bar"></div>
+        </div>
+        <span id="health-text">100</span>
+      </div>
     </div>
 
     <!-- Winning Screen -->
     <div id="winning-screen" class="overlay hidden">
       <div class="dialog">
-        <h1>Congratulations!</h1>
-        <p>You have completed all levels.</p>
+        <h1>Congratulations! You Win!</h1>
+        <p>Your final health is your score.</p>
+        <div id="final-stats">
+          <p>Final Health: <span id="final-health">100</span></p>
+        </div>
         <button id="play-again-button">Play Again</button>
+      </div>
+    </div>
+
+    <!-- Losing Screen -->
+    <div id="losing-screen" class="overlay hidden">
+      <div class="dialog">
+        <h1>Game Over</h1>
+        <p>You ran out of health.</p>
+        <button id="retry-button">Play Again</button>
       </div>
     </div>
 

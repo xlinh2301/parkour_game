@@ -3,16 +3,23 @@ class UIManager {
         this.loginScreen = document.getElementById('login-screen');
         this.inGameUI = document.getElementById('in-game-ui');
         this.pauseMenu = document.getElementById('pause-menu');
+        this.winningScreen = document.getElementById('winning-screen');
+        this.losingScreen = document.getElementById('losing-screen');
+
         this.startButton = document.getElementById('start-button');
         this.continueButton = document.getElementById('continue-button');
         this.exitButton = document.getElementById('exit-button');
-        this.toggleMusicButton = document.getElementById('toggle-music-button'); // Get the new button
-        this.levelElement = document.getElementById('level');
-        this.speedElement = document.getElementById('speed');
-        this.timeElement = document.getElementById('time');
-        this.scoreElement = document.getElementById('score');
-        this.winningScreen = document.getElementById('winning-screen');
+        this.toggleMusicButton = document.getElementById('toggle-music-button');
         this.playAgainButton = document.getElementById('play-again-button');
+        this.retryButton = document.getElementById('retry-button');
+
+        this.levelElement = document.getElementById('level');
+        this.timeElement = document.getElementById('time');
+        this.healthBarElement = document.getElementById('health-bar');
+        this.healthTextElement = document.getElementById('health-text');
+        
+        // Final stats elements
+        this.finalHealthElement = document.getElementById('final-health');
 
         this.isGamePaused = false;
         this.isGameStarted = false;
@@ -27,7 +34,8 @@ class UIManager {
         this.continueButton.addEventListener('click', () => this.togglePauseMenu());
         this.exitButton.addEventListener('click', () => this.exitGame());
         this.playAgainButton.addEventListener('click', () => this.startGame());
-        this.toggleMusicButton.addEventListener('click', () => this.toggleMusic()); // Add event listener
+        this.retryButton.addEventListener('click', () => this.startGame());
+        this.toggleMusicButton.addEventListener('click', () => this.toggleMusic());
 
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape' && this.isGameStarted) {
@@ -41,6 +49,7 @@ class UIManager {
         this.inGameUI.style.display = 'none';
         this.pauseMenu.style.display = 'none';
         this.winningScreen.style.display = 'none';
+        this.losingScreen.style.display = 'none';
     }
 
     showInGameUI() {
@@ -48,6 +57,7 @@ class UIManager {
         this.inGameUI.style.display = 'block';
         this.pauseMenu.style.display = 'none';
         this.winningScreen.style.display = 'none';
+        this.losingScreen.style.display = 'none';
     }
 
     showPauseMenu() {
@@ -101,18 +111,30 @@ class UIManager {
         }
     }
 
-    showWinningScreen() {
+    showWinningScreen(stats) {
         this.isGamePaused = true;
         this.inGameUI.style.display = 'none';
         this.winningScreen.style.display = 'flex';
+        
+        if (stats) {
+            this.finalHealthElement.textContent = stats.health;
+        }
+
         document.exitPointerLock();
     }
 
-    updateInGameUI(level, speed, time, score) {
-        this.levelElement.textContent = `Level: ${level}`;
-        this.speedElement.textContent = `Speed: ${speed.toFixed(2)}`;
-        this.timeElement.textContent = `Time: ${time.toFixed(2)}s`;
-        this.scoreElement.textContent = `Score: ${score}`;
+    showLosingScreen() {
+        this.isGamePaused = true;
+        this.inGameUI.style.display = 'none';
+        this.losingScreen.style.display = 'flex';
+        document.exitPointerLock();
+    }
+
+    updateInGameUI(data) {
+        this.levelElement.textContent = `Level: ${data.level}`;
+        this.timeElement.textContent = `Time: ${data.time.toFixed(2)}s`;
+        this.healthBarElement.style.width = `${data.health}%`;
+        this.healthTextElement.textContent = data.health;
     }
 }
 

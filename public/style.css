@@ -43,10 +43,36 @@ body {
   position: absolute;
   top: 10px;
   left: 10px;
-  color: #fff;
-  font-family: Arial, sans-serif;
-  font-size: 18px;
-  z-index: 50;
+  color: white;
+  background-color: rgba(0,0,0,0.5);
+  padding: 10px;
+  border-radius: 5px;
+  font-family: sans-serif;
+  z-index: 10;
+}
+
+.health-container {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Space between bar and text */
+}
+
+#health-bar-container {
+  width: 200px;
+  height: 20px;
+  border: 2px solid #555;
+  background-color: #333;
+  border-radius: 5px;
+  margin-top: 5px;
+  overflow: hidden;
+}
+
+#health-bar {
+  width: 100%; /* Initial width */
+  height: 100%;
+  background-color: #ff4136; /* Red color */
+  border-radius: 2px;
+  transition: width 0.5s ease-in-out; /* Smooth transition */
 }
 
 .hidden {

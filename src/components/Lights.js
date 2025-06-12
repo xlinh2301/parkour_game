@@ -21,6 +21,10 @@ export class Scene {
         this.camera.add(this.audioListener);
         this.backgroundMusic = null; // Store background music object
 
+        this.daySkybox = null;
+        this.ambientLight = null;
+        this.directionalLight = null;
+
         this._initBackgroundMusic(); // Load music but don't play
     }
 
@@ -70,18 +74,51 @@ export class Scene {
         return this.backgroundMusic ? this.backgroundMusic.isPlaying : false;
     }
 
-    setupLights() {
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        this.scene.add(ambientLight);
+    setDaySkybox(texture) {
+        this.daySkybox = texture;
+        this.scene.background = this.daySkybox; // Set it initially
+    }
 
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
-        directionalLight.position.set(10, 15, 5);
-        directionalLight.castShadow = true;
-        directionalLight.shadow.mapSize.width = 2048;
-        directionalLight.shadow.mapSize.height = 2048;
-        directionalLight.shadow.camera.near = 0.5;
-        directionalLight.shadow.camera.far = 50;
-        this.scene.add(directionalLight);
+    setupLights() {
+        this.ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+        this.scene.add(this.ambientLight);
+
+        this.directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+        this.directionalLight.position.set(10, 20, 5);
+        this.directionalLight.castShadow = true;
+        this.directionalLight.shadow.mapSize.width = 2048;
+        this.directionalLight.shadow.mapSize.height = 2048;
+        this.directionalLight.shadow.camera.near = 0.5;
+        this.directionalLight.shadow.camera.far = 50;
+        this.scene.add(this.directionalLight);
+    }
+
+    setEnvironment(theme) {
+        if (theme === 'night') {
+            console.log("Switching to Night environment");
+            this.ambientLight.color.setHex(0x404080);
+            this.ambientLight.intensity = 0.8;
+            
+            this.directionalLight.color.setHex(0x5050aa);
+            this.directionalLight.intensity = 1.5;
+            this.directionalLight.position.set(-10, 15, -5);
+            
+            this.scene.background = new THREE.Color(0x101025);
+        } else { // 'day'
+            console.log("Switching to Day environment");
+            this.ambientLight.color.setHex(0xffffff);
+            this.ambientLight.intensity = 1.5;
+
+            this.directionalLight.color.setHex(0xffffff);
+            this.directionalLight.intensity = 2;
+            this.directionalLight.position.set(10, 20, 5);
+            
+            if (this.daySkybox) {
+                this.scene.background = this.daySkybox;
+            } else {
+                this.scene.background = new THREE.Color(0x87ceeb);
+            }
+        }
     }
 
     handleResize() {

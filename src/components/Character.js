@@ -28,7 +28,7 @@ export function loadCharacterWithPhysics(scene, physicsWorld, audioListener) { /
       const mixer = new THREE.AnimationMixer(character);
       
       // Log tất cả animations có sẵn
-      console.log('Available animations:', gltf.animations.map(clip => clip.name));
+      // console.log('Available animations:', gltf.animations.map(clip => clip.name));
       
       // Tìm và phát animation chạy, idle, jump
       let runAction = null;
@@ -37,7 +37,7 @@ export function loadCharacterWithPhysics(scene, physicsWorld, audioListener) { /
       
       gltf.animations.forEach((clip) => {
         const action = mixer.clipAction(clip);
-        console.log('Animation clip:', clip.name);
+        // console.log('Animation clip:', clip.name);
         
         // Tìm animation chạy
         if (clip.name.toLowerCase().includes('run')) {
@@ -59,7 +59,7 @@ export function loadCharacterWithPhysics(scene, physicsWorld, audioListener) { /
       // Nếu không tìm thấy animation cụ thể, phát animation đầu tiên
       if (!runAction && gltf.animations.length > 0) {
         runAction = mixer.clipAction(gltf.animations[0]);
-        console.log('🎬 Using first animation as run:', gltf.animations[0].name);
+        // console.log('🎬 Using first animation as run:', gltf.animations[0].name);
       }
       if (!idleAction && gltf.animations.length > 0) {
         idleAction = mixer.clipAction(gltf.animations[0]);

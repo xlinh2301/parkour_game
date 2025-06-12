@@ -90,15 +90,15 @@ export class PhysicsWorld {
         worldBox.getCenter(worldCenter);
 
         // Log the mesh name and calculated values for debugging
-        console.log(`Mesh: ${mesh.name || 'unnamed'}`);
-        console.log('  Local bounding box min:', localBox.min, 'max:', localBox.max);
-        console.log('  Scale:', scale);
-        console.log('  Calculated collision size (scaled):', size);
-        console.log('  World bounding box size (Three.js):', worldSize);
-        console.log('  Collision box center (finalPosition):', finalPosition);
-        console.log('  World bounding box center (Three.js):', worldCenter);
-        console.log('  Delta center:', new THREE.Vector3().subVectors(finalPosition, worldCenter));
-        console.log('------------------------------------------------------');
+        // console.log(`Mesh: ${mesh.name || 'unnamed'}`);
+        // console.log('  Local bounding box min:', localBox.min, 'max:', localBox.max);
+        // console.log('  Scale:', scale);
+        // console.log('  Calculated collision size (scaled):', size);
+        // console.log('  World bounding box size (Three.js):', worldSize);
+        // console.log('  Collision box center (finalPosition):', finalPosition);
+        // console.log('  World bounding box center (Three.js):', worldCenter);
+        // console.log('  Delta center:', new THREE.Vector3().subVectors(finalPosition, worldCenter));
+        // console.log('------------------------------------------------------');
     
         // Create the Cannon shape
         const shape = new Box(new Vec3(size.x / 2, size.y / 2, size.z / 2));
@@ -188,7 +188,7 @@ export class PhysicsWorld {
         let size, finalPosition, quaternion;
 
         if (mesh.geometry) {
-            console.log('mesh.geometry', mesh.geometry);
+            // console.log('mesh.geometry', mesh.geometry);
             // clone geometry and compute bounding box in local space
             const geometry = mesh.geometry.clone();
             geometry.computeBoundingBox();
@@ -226,15 +226,15 @@ export class PhysicsWorld {
 
             geometry.dispose();
         } else {
-            console.log('Character mesh.geometry');
+            // console.log('Character mesh.geometry');
             // Fallback for Group/Object3D without geometry: use world bounding box
             const worldBox = new THREE.Box3().setFromObject(mesh);
             size = new THREE.Vector3();
             worldBox.getSize(size);
-            console.log('Character size: ', size)
+            // console.log('Character size: ', size)
             finalPosition = new THREE.Vector3();
             worldBox.getCenter(finalPosition);
-            console.log('worldBox size: ', worldBox.getCenter(finalPosition))
+            // console.log('worldBox size: ', worldBox.getCenter(finalPosition))
 
             quaternion = new THREE.Quaternion(); // identity
             // Ensure min thickness
@@ -242,7 +242,7 @@ export class PhysicsWorld {
             size.x = Math.max(size.x, minSize);
             size.y = Math.max(size.y, minSize);
             size.z = Math.max(size.z, minSize);
-            console.log('size x: ', size.x, 'size y: ', size.y, 'size z: ', size.z)
+            // console.log('size x: ', size.x, 'size y: ', size.y, 'size z: ', size.z)
         }
 
         // Apply shrink factors (allow slimming X/Z while preserving height)

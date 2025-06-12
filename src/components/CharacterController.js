@@ -7,9 +7,10 @@ export class CharacterController {
         this.character = character;
         this.world = world;
 
-        this.speed = 1.2; // Tăng tốc độ chạy (tăng từ 1 lên 1.2)
-        this.sprintSpeed = 2.0; // Tăng tốc độ chạy nhanh (tăng từ 1.75 lên 2.0)
-        this.jumpForce = 3.2; // Nhảy cao hơn mặc định (tăng từ 2.5 lên 3.2)
+        this.speed = 1; // Walking speed
+        this.sprintSpeed = 1.75; // Running speed when Shift held
+        this.jumpForce = 2.5; // Nhảy nhẹ hơn
+        this.deathCount = 0;
 
         this.keys = {
             forward: false,
@@ -284,6 +285,7 @@ export class CharacterController {
     /** Reset nhân vật về vị trí spawn gốc */
     resetToSpawn() {
         this.debugLog('[reset] Falling below threshold, resetting character');
+        this.deathCount++;
 
         this.body.position.set(this.spawnPosition.x, this.spawnPosition.y, this.spawnPosition.z);
         this.body.velocity.set(0, 0, 0);
