@@ -7,9 +7,9 @@ export class CharacterController {
         this.character = character;
         this.world = world;
 
-        this.speed = 1; // Walking speed
-        this.sprintSpeed = 1.75; // Running speed when Shift held
-        this.jumpForce = 2.5; // Nhảy nhẹ hơn
+        this.speed = 1.2; // Tăng tốc độ chạy (tăng từ 1 lên 1.2)
+        this.sprintSpeed = 2.0; // Tăng tốc độ chạy nhanh (tăng từ 1.75 lên 2.0)
+        this.jumpForce = 3.2; // Nhảy cao hơn mặc định (tăng từ 2.5 lên 3.2)
 
         this.keys = {
             forward: false,
@@ -145,25 +145,37 @@ export class CharacterController {
 
         const runAction = this.character.userData.runAction;
         const idleAction = this.character.userData.idleAction;
+        const jumpAction = this.character.userData.jumpAction;
         const runSound = this.character.userData.runSound;
 
-        // Handle animation transitions based on isMoving
-        if (isMoving && !this.character.userData.isMoving) { // Started moving (intent)
-            if (idleAction) idleAction.fadeOut(0.3);
-            if (runAction) runAction.reset().fadeIn(0.3).play();
-            this.character.userData.isMoving = true;
-        } else if (!isMoving && this.character.userData.isMoving) { // Stopped moving (intent)
-            if (runAction) runAction.fadeOut(0.3);
-            if (idleAction) idleAction.reset().fadeIn(0.3).play();
-            this.character.userData.isMoving = false;
+        // Lưu trạng thái animation trước đó
+        if (!this._lastAnimState) this._lastAnimState = '';
+        let nextState = '';
+        if (!this.isOnGround) {
+            nextState = 'jump';
+        } else if (isMoving) {
+            nextState = 'run';
+        } else {
+            nextState = 'idle';
+        }
+        if (this._lastAnimState !== nextState) {
+            // Tắt tất cả action trước khi bật action mới
+            if (idleAction && idleAction.isRunning()) idleAction.fadeOut(0.1);
+            if (runAction && runAction.isRunning()) runAction.fadeOut(0.1);
+            if (jumpAction && jumpAction.isRunning()) jumpAction.fadeOut(0.1);
+            // Bật action mới
+            if (nextState === 'idle' && idleAction) idleAction.reset().fadeIn(0.2).play();
+            if (nextState === 'run' && runAction) runAction.reset().fadeIn(0.2).play();
+            if (nextState === 'jump' && jumpAction) jumpAction.reset().fadeIn(0.1).play();
+            this._lastAnimState = nextState;
         }
 
-        // Handle run sound based on isMoving and isOnGround, checked each frame
+        // Run sound logic
         if (isMoving && this.isOnGround) {
             if (runSound && !runSound.isPlaying) {
                 runSound.play();
             }
-        } else { // Not moving OR not on ground
+        } else {
             if (runSound && runSound.isPlaying) {
                 runSound.stop();
             }

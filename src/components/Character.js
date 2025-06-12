@@ -4,7 +4,7 @@ import * as THREE from 'three';
 export function loadCharacter(scene) {
   return new Promise((resolve) => {
     const loader = new GLTFLoader();
-    loader.load('models/character/luoli_run.glb', (gltf) => {
+    loader.load('models/character/nhanvat.glb', (gltf) => {
       const character = gltf.scene;
       // Giảm kích thước nhân vật nhỏ hơn để phù hợp tỉ lệ thế giới
       character.scale.set(0.001, 0.001, 0.001);
@@ -18,10 +18,10 @@ export function loadCharacter(scene) {
 export function loadCharacterWithPhysics(scene, physicsWorld, audioListener) { // Added audioListener
   return new Promise((resolve, reject) => { // Added reject for error handling
     const loader = new GLTFLoader();
-    loader.load('models/character/luoli_run.glb', (gltf) => {
+    loader.load('models/character/nhanvat.glb', (gltf) => {
       const character = gltf.scene;
-      // Giảm kích thước nhân vật nhỏ hơn để phù hợp tỉ lệ thế giới
-      character.scale.set(0.002, 0.002, 0.002);
+      // Tăng kích thước nhân vật lên gấp 10 lần so với trước đây
+      character.scale.set(0.2, 0.2, 0.2);
       character.position.set(0, 4, 0); // Spawn vừa phải, rơi xuống ground plane
       
       // Tạo AnimationMixer cho character
@@ -30,27 +30,29 @@ export function loadCharacterWithPhysics(scene, physicsWorld, audioListener) { /
       // Log tất cả animations có sẵn
       console.log('Available animations:', gltf.animations.map(clip => clip.name));
       
-      // Tìm và phát animation chạy
+      // Tìm và phát animation chạy, idle, jump
       let runAction = null;
       let idleAction = null;
+      let jumpAction = null;
       
       gltf.animations.forEach((clip) => {
         const action = mixer.clipAction(clip);
         console.log('Animation clip:', clip.name);
         
-        // Tìm animation chạy (có thể có tên khác nhau)
-        if (clip.name.toLowerCase().includes('run') || 
-            clip.name.toLowerCase().includes('walk') ||
-            clip.name.toLowerCase().includes('jog')) {
+        // Tìm animation chạy
+        if (clip.name.toLowerCase().includes('run')) {
           runAction = action;
           console.log('🏃 Found run animation:', clip.name);
         }
-        
         // Tìm animation đứng yên
-        if (clip.name.toLowerCase().includes('idle') || 
-            clip.name.toLowerCase().includes('stand')) {
+        if (clip.name.toLowerCase().includes('idle')) {
           idleAction = action;
           console.log('🧍 Found idle animation:', clip.name);
+        }
+        // Tìm animation nhảy
+        if (clip.name.toLowerCase().includes('jump')) {
+          jumpAction = action;
+          console.log('🦘 Found jump animation:', clip.name);
         }
       });
       
@@ -58,6 +60,14 @@ export function loadCharacterWithPhysics(scene, physicsWorld, audioListener) { /
       if (!runAction && gltf.animations.length > 0) {
         runAction = mixer.clipAction(gltf.animations[0]);
         console.log('🎬 Using first animation as run:', gltf.animations[0].name);
+      }
+      if (!idleAction && gltf.animations.length > 0) {
+        idleAction = mixer.clipAction(gltf.animations[0]);
+        console.log('🎬 Using first animation as idle:', gltf.animations[0].name);
+      }
+      if (!jumpAction && gltf.animations.length > 0) {
+        jumpAction = mixer.clipAction(gltf.animations[0]);
+        console.log('🎬 Using first animation as jump:', gltf.animations[0].name);
       }
       
       // Phát animation idle mặc định
@@ -88,6 +98,7 @@ export function loadCharacterWithPhysics(scene, physicsWorld, audioListener) { /
       character.userData.mixer = mixer;
       character.userData.runAction = runAction;
       character.userData.idleAction = idleAction;
+      character.userData.jumpAction = jumpAction;
       character.userData.isMoving = false;
 
       // Load sounds
@@ -123,6 +134,7 @@ export function loadCharacterWithPhysics(scene, physicsWorld, audioListener) { /
               mixer: mixer,
               runAction: runAction,
               idleAction: idleAction,
+              jumpAction: jumpAction
               // Sounds are attached to character.userData directly
             });
           }
@@ -138,7 +150,8 @@ export function loadCharacterWithPhysics(scene, physicsWorld, audioListener) { /
               body: characterBody,
               mixer: mixer,
               runAction: runAction,
-              idleAction: idleAction
+              idleAction: idleAction,
+              jumpAction: jumpAction
             });
           }
         });
