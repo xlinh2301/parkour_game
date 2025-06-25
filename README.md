@@ -1,7 +1,7 @@
 # Đồ án Computer Graphics - Game Parkour Kungfu
 
 ## Mô tả
-ABC
+"Parkour Rush" là một game parkour 3D tốc độ cao. Người chơi điều khiển nhân vật vượt qua các môi trường đô thị đầy thử thách bằng cách thực hiện các cú nhảy, leo trèo và chạy trên tường để đến các điểm checkpoint. Game có hiệu ứng thời tiết động, chu kỳ ngày đêm và cơ chế di chuyển dựa trên vật lý.
 
 ## Công nghệ sử dụng
 

@@ -7,7 +7,7 @@ export class CameraSystem {
         this.target = new THREE.Vector3();
         this.offset = new THREE.Vector3(0, 0.8, 0.01); // Position camera behind and slightly above character
         this.currentRotation = new THREE.Euler();
-        this.sensitivity = 0.002;
+        this.sensitivity = 0.001;
     }
 
     setup(character) {
@@ -72,5 +72,5 @@ export class CameraSystem {
         // Look at target
         this.camera.lookAt(this.target);
     }
-} 
+}
 
