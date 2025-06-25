@@ -247,14 +247,6 @@ function animate() {
     health -= death_penalty;
     lastDeathCount = characterController.deathCount;
 
-    // Play death sound
-    if (character && character.userData.deathSound) {
-        if (character.userData.deathSound.isPlaying) {
-            character.userData.deathSound.stop();
-        }
-        character.userData.deathSound.play();
-    }
-
     if (health <= 0) {
         health = 0; // Prevent negative health display
         score = calculateScore();

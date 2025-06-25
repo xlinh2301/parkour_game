@@ -128,7 +128,7 @@ class UIManager {
         
         if (stats) {
             this.finalHealthElement.textContent = stats.health;
-            this.finalScoreElement.textContent = stats.score;
+            // this.finalScoreElement.textContent = stats.score;
         }
 
         document.exitPointerLock();

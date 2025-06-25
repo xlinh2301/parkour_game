@@ -11,6 +11,7 @@ export class CharacterController {
         this.sprintSpeed = 2.0; // Running speed when Shift held
         this.jumpForce = 2.5; // Nhảy nhẹ hơn
         this.deathCount = 0;
+        this.deathSoundHasPlayed = false; // Cờ để đảm bảo âm thanh chỉ phát 1 lần
 
         this.keys = {
             forward: false,
@@ -188,6 +189,26 @@ export class CharacterController {
 
         this.checkGrounded();
     
+        // Reset cờ âm thanh nếu nhân vật đáp xuống đất
+        if (this.isOnGround) {
+            this.deathSoundHasPlayed = false;
+        }
+
+        // Phát âm thanh chết khi rơi xuống một nửa ngưỡng
+        if (this.body.position.y < (this.resetThreshold / 2) && !this.deathSoundHasPlayed) {
+            if (this.character && this.character.userData.deathSound) {
+                const deathSound = this.character.userData.deathSound;
+                
+                if (deathSound.isPlaying) {
+                    deathSound.stop();
+                }
+                
+                deathSound.play();
+                
+                this.deathSoundHasPlayed = true; // Đánh dấu là đã phát
+            }
+        }
+    
         // Giảm jump cooldown
         if (this.jumpCooldown > 0) {
             this.jumpCooldown -= deltaTime;
@@ -287,11 +308,14 @@ export class CharacterController {
         this.debugLog('[reset] Falling below threshold, resetting character');
         this.deathCount++;
 
-        this.body.position.set(this.spawnPosition.x, this.spawnPosition.y, this.spawnPosition.z);
+        this.body.position.copy(this.spawnPosition);
         this.body.velocity.set(0, 0, 0);
         this.body.angularVelocity.set(0, 0, 0);
+
+        // Reset lại các trạng thái
         this.isOnGround = false;
         this.jumpCooldown = 0;
+        this.deathSoundHasPlayed = false; // Quan trọng: reset cờ âm thanh
     }
 
     destroy() {

@@ -118,15 +118,15 @@ export function loadCharacterWithPhysics(scene, physicsWorld, audioListener) { /
           sound.setBuffer(buffer);
           if (soundInfo.name === 'runSound') {
             sound.setLoop(true); // Loop running sound
-            sound.setVolume(1.0); // Tăng âm lượng chạy
+            sound.setVolume(0.5); // Tăng âm lượng chạy
             runSound = sound;
             character.userData.runSound = runSound;
           } else if (soundInfo.name === 'jumpSound') {
-            sound.setVolume(1.0); // Tăng âm lượng nhảy
+            sound.setVolume(0.3); // Tăng âm lượng nhảy
             jumpSound = sound;
             character.userData.jumpSound = jumpSound;
           } else if (soundInfo.name === 'deathSound') {
-            sound.setVolume(2.0); // Âm lượng khi ch  ết
+            sound.setVolume(0.7); // Âm lượng khi ch  ết
             character.userData.deathSound = sound;
             // Lưu trữ thời lượng của âm thanh
             if (sound.buffer) {
