@@ -1,7 +1,7 @@
 # Đồ án Computer Graphics - Game Parkour Kungfu
 
 ## Mô tả
-"Parkour Rush" là một game parkour 3D tốc độ cao. Người chơi điều khiển nhân vật vượt qua các môi trường đô thị đầy thử thách bằng cách thực hiện các cú nhảy, leo trèo và chạy trên tường để đến các điểm checkpoint. Game có hiệu ứng thời tiết động, chu kỳ ngày đêm và cơ chế di chuyển dựa trên vật lý.
+Đồ án xây dựng một trò chơi Parkour 3D chạy trên nền tảng web, nơi người chơi điều khiển một nhân vật vượt qua các chướng ngại vật trong môi trường đô thị hiện đại. Game sử dụng thư viện Three.js để dựng hình ảnh 3D, Cannon-es để mô phỏng vật lý thực tế, và tích hợp các hiệu ứng như mưa, tuyết, chu kỳ ngày đêm, pháo hoa khi chiến thắng. Người chơi sẽ trải nghiệm các động tác parkour như chạy, nhảy, leo trèo, cùng hệ thống animation và âm thanh sống động. Giao diện trực quan hiển thị level, thời gian, máu và trạng thái trò chơi. Đồ án giúp rèn luyện kỹ năng lập trình JavaScript, xử lý đồ họa, vật lý, tối ưu hiệu năng và thiết kế trải nghiệm người dùng cho ứng dụng 3D thời gian thực trên trình duyệt.
 
 ## Công nghệ sử dụng
 
