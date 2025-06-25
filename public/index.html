@@ -27,6 +27,46 @@
         <h1>Parkour Game</h1>
         <button id="start-button">Bắt đầu</button>
         <button id="how-to-play-button">Hướng dẫn</button>
+        <button id="settings-button">Cài đặt</button>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="overlay hidden">
+      <div class="dialog">
+        <h2>Cài đặt hiệu năng</h2>
+        <p>Chọn mức hiệu năng phù hợp với máy của bạn:</p>
+        
+        <div class="performance-options">
+          <label class="performance-option">
+            <input type="radio" name="performance" value="high" id="performance-high">
+            <span class="radio-label">
+              <strong>Cao</strong><br>
+              <small>Dành cho máy mạnh (8+ cores, 8GB+ RAM)</small>
+            </span>
+          </label>
+          
+          <label class="performance-option">
+            <input type="radio" name="performance" value="medium" id="performance-medium">
+            <span class="radio-label">
+              <strong>Trung bình</strong><br>
+              <small>Dành cho máy tầm trung (4+ cores, 4GB+ RAM)</small>
+            </span>
+          </label>
+          
+          <label class="performance-option">
+            <input type="radio" name="performance" value="low" id="performance-low">
+            <span class="radio-label">
+              <strong>Thấp</strong><br>
+              <small>Dành cho máy yếu hoặc gặp vấn đề rung giật</small>
+            </span>
+          </label>
+        </div>
+        
+        <div class="modal-buttons">
+          <button id="apply-settings-button">Áp dụng</button>
+          <button id="close-settings-button">Hủy</button>
+        </div>
       </div>
     </div>
 

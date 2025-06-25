@@ -10,6 +10,7 @@ import CannonDebugger from 'cannon-es-debugger';
 import { Vec3 } from 'cannon-es';
 import UIManager from './components/UIManager.js';
 import { ParticleManager } from './components/ParticleManager.js';
+import { performanceConfig } from './components/PerformanceConfig.js';
 
 // Game state
 let character = null;
@@ -231,15 +232,19 @@ function calculateScore() {
 function animate() {
   const deltaTime = clock.getDelta();
   
+  // Giới hạn deltaTime theo performance config
+  const physicsConfig = performanceConfig.getPhysicsConfig();
+  const clampedDeltaTime = Math.min(deltaTime, 1 / 30); // Không cho phép dưới 30fps
+  
   if (!uiManager.isGameStarted || uiManager.isGamePaused) {
     window.requestAnimationFrame(animate);
     return;
   }
   
-  gameTime += deltaTime;
+  gameTime += clampedDeltaTime;
   
-  // Update physics first
-  physicsWorld.step(deltaTime);
+  // Update physics first với performance config
+  physicsWorld.step(clampedDeltaTime);
   
   // Health and Lose Condition Check
   if (characterController && characterController.deathCount > lastDeathCount) {
@@ -258,34 +263,42 @@ function animate() {
   if (character && characterBody) {
     physicsWorld.syncObject(character, characterBody);
     
-    uiManager.updateInGameUI({
-        level: level,
-        time: gameTime,
-        health: health
-    });
+    // Cập nhật UI theo performance config
+    const uiConfig = performanceConfig.getUIConfig();
+    if (performanceConfig.shouldUpdate('ui', animate.lastUIUpdate || 0)) {
+      uiManager.updateInGameUI({
+          level: level,
+          time: gameTime,
+          health: health
+      });
+      animate.lastUIUpdate = performance.now();
+    }
   }
   
   // Update camera
   if (cameraSystem && character) {
-    cameraSystem.update(character, deltaTime);
+    cameraSystem.update(character, clampedDeltaTime);
   }
   
   // Update character movement
   if (characterController && cameraSystem) {
-    characterController.update(cameraSystem.currentRotation.y, deltaTime);
+    characterController.update(cameraSystem.currentRotation.y, clampedDeltaTime);
   }
   
-  // Update animation mixer
+  // Update animation mixer với fixed timestep
   if (animationMixer) {
-    animationMixer.update(deltaTime);
+    animationMixer.update(clampedDeltaTime);
   }
 
-  // Update particle effects
+  // Update particle effects theo performance config
   if (particleManager) {
-    particleManager.update();
+    if (performanceConfig.shouldUpdate('particles', animate.lastParticleUpdate || 0)) {
+      particleManager.update();
+      animate.lastParticleUpdate = performance.now();
+    }
   }
   
-  // Update physics debug visuals
+  // Update physics debug visuals (tắt để tối ưu hiệu năng)
   // cannonDebugger.update();
   
   // Render

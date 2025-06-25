@@ -6,10 +6,14 @@ class UIManager {
         this.winningScreen = document.getElementById('winning-screen');
         this.losingScreen = document.getElementById('losing-screen');
         this.howToPlayModal = document.getElementById('how-to-play-modal');
+        this.settingsModal = document.getElementById('settings-modal');
 
         this.startButton = document.getElementById('start-button');
         this.howToPlayButton = document.getElementById('how-to-play-button');
+        this.settingsButton = document.getElementById('settings-button');
         this.closeHowToPlayButton = document.getElementById('close-how-to-play-button');
+        this.closeSettingsButton = document.getElementById('close-settings-button');
+        this.applySettingsButton = document.getElementById('apply-settings-button');
         this.continueButton = document.getElementById('continue-button');
         this.exitButton = document.getElementById('exit-button');
         this.toggleMusicButton = document.getElementById('toggle-music-button');
@@ -20,6 +24,9 @@ class UIManager {
         this.timeElement = document.getElementById('time');
         this.healthBarElement = document.getElementById('health-bar');
         this.healthTextElement = document.getElementById('health-text');
+        
+        // Performance radio buttons
+        this.performanceRadios = document.querySelectorAll('input[name="performance"]');
         
         // Final stats elements
         this.finalHealthElement = document.getElementById('final-health');
@@ -33,12 +40,16 @@ class UIManager {
         this.callbacks = callbacks;
 
         this.setupEventListeners();
+        this.initPerformanceSettings();
     }
 
     setupEventListeners() {
         this.startButton.addEventListener('click', () => this.startGame());
         this.howToPlayButton.addEventListener('click', () => this.showHowToPlayModal());
+        this.settingsButton.addEventListener('click', () => this.showSettingsModal());
         this.closeHowToPlayButton.addEventListener('click', () => this.hideHowToPlayModal());
+        this.closeSettingsButton.addEventListener('click', () => this.hideSettingsModal());
+        this.applySettingsButton.addEventListener('click', () => this.applySettings());
         this.continueButton.addEventListener('click', () => this.togglePauseMenu());
         this.exitButton.addEventListener('click', () => this.exitGame());
         this.playAgainButton.addEventListener('click', () => this.startGame());
@@ -173,6 +184,39 @@ class UIManager {
 
     hideHowToPlayModal() {
         this.howToPlayModal.style.display = 'none';
+    }
+
+    initPerformanceSettings() {
+        // Import performanceConfig và set radio button hiện tại
+        import('./PerformanceConfig.js').then(({ performanceConfig }) => {
+            const currentLevel = performanceConfig.performanceLevel;
+            const radio = document.getElementById(`performance-${currentLevel}`);
+            if (radio) {
+                radio.checked = true;
+            }
+        });
+    }
+
+    showSettingsModal() {
+        this.settingsModal.classList.remove('hidden');
+    }
+
+    hideSettingsModal() {
+        this.settingsModal.classList.add('hidden');
+    }
+
+    applySettings() {
+        const selectedPerformance = document.querySelector('input[name="performance"]:checked');
+        if (selectedPerformance) {
+            import('./PerformanceConfig.js').then(({ performanceConfig }) => {
+                const success = performanceConfig.setPerformanceLevel(selectedPerformance.value);
+                if (success) {
+                    console.log(`Performance level changed to: ${selectedPerformance.value}`);
+                    // Có thể thêm notification cho user
+                }
+            });
+        }
+        this.hideSettingsModal();
     }
 }
 

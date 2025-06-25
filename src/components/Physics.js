@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { World, Box, Body, Vec3, Material, ContactMaterial, NaiveBroadphase } from 'cannon-es';
+import { performanceConfig } from './PerformanceConfig.js';
 
 export class PhysicsWorld {
     constructor() {
@@ -7,10 +8,20 @@ export class PhysicsWorld {
         console.log('World:', World);
         console.log('Box:', Box);
         
-        // Tạo physics world
+        // Lấy physics config từ performance config
+        const physicsConfig = performanceConfig.getPhysicsConfig();
+        
+        // Tạo physics world với tối ưu hóa cho máy cấu hình khác nhau
         this.world = new World();
         this.world.gravity.set(0, -9.81, 0); // Trọng lực
         this.world.broadphase = new NaiveBroadphase();
+        
+        // Tối ưu hóa solver theo performance config
+        this.world.solver.iterations = physicsConfig.solverIterations;
+        this.world.solver.tolerance = 0.01; // Tăng tolerance để tính toán nhanh hơn
+        
+        // Lưu config để sử dụng sau
+        this.physicsConfig = physicsConfig;
         
         // Contact material cho va chạm mượt
         this.defaultMaterial = new Material('default');
@@ -155,11 +166,16 @@ export class PhysicsWorld {
         return characterBody;
     }
 
-    // Update physics
+    // Update physics với performance config
     step(deltaTime) {
-        const fixedTimeStep = 1 / 60;       // 60 Hz
-        const maxSubSteps   = 5;            // tối đa 5 bước phụ nếu khung hình chậm
-        this.world.step(fixedTimeStep, deltaTime, maxSubSteps);
+        const config = this.physicsConfig;
+        const fixedTimeStep = config.fixedTimeStep;
+        const maxSubSteps = config.maxSubSteps;
+        
+        // Giới hạn deltaTime để tránh physics instability
+        const clampedDeltaTime = Math.min(deltaTime, 0.033);
+        
+        this.world.step(fixedTimeStep, clampedDeltaTime, maxSubSteps);
     }
 
     // Sync Three.js object với Cannon body

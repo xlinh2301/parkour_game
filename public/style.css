@@ -89,6 +89,8 @@ body {
   backdrop-filter: blur(10px);
   min-width: 320px;
   animation: fadeInScale 0.3s ease-out;
+  max-width: 500px;
+  width: 90%;
 }
 
 @keyframes fadeInScale {
@@ -109,6 +111,21 @@ body {
   font-size: 32px;
   font-weight: bold;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.dialog h2 {
+  color: #ffffff;
+  margin-bottom: 16px;
+  font-size: 24px;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.dialog p {
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 16px;
+  text-align: center;
+  line-height: 1.5;
 }
 
 .dialog button {
@@ -150,4 +167,59 @@ body {
   100% {
     transform: scale(1); /* Thu nhỏ lại */
   }
+}
+
+/* Performance Settings Modal */
+.performance-options {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.performance-option {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.performance-option:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.performance-option input[type="radio"] {
+  margin-right: 12px;
+  transform: scale(1.2);
+}
+
+.radio-label {
+  color: white;
+  text-align: left;
+}
+
+.radio-label strong {
+  font-size: 16px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.radio-label small {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.modal-buttons button {
+  flex: 1;
+  max-width: 120px;
 }

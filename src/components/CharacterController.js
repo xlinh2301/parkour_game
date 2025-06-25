@@ -1,5 +1,6 @@
 import { Vec3, RaycastResult } from 'cannon-es';
 import * as THREE from 'three';
+import { performanceConfig } from './PerformanceConfig.js';
 
 export class CharacterController {
     constructor(body, character = null, world = null, debug = false) {
@@ -119,6 +120,17 @@ export class CharacterController {
             return;
         }
 
+        // Sử dụng performance config để điều chỉnh tần suất kiểm tra
+        const charConfig = performanceConfig.getCharacterConfig();
+        const checkInterval = 1000 / charConfig.groundCheckFrequency;
+        
+        if (!this._lastGroundCheck) this._lastGroundCheck = 0;
+        const now = performance.now();
+        if (now - this._lastGroundCheck < checkInterval) {
+            return;
+        }
+        this._lastGroundCheck = now;
+
         // Nếu đang di chuyển lên (vận tốc dương), bỏ qua kiểm tra "ground" để tránh nhận diện sai
         const upwardThreshold = 0.1;
         if (this.body.velocity.y > upwardThreshold) {
@@ -150,6 +162,17 @@ export class CharacterController {
         const jumpAction = this.character.userData.jumpAction;
         const runSound = this.character.userData.runSound;
 
+        // Sử dụng performance config để điều chỉnh tần suất cập nhật animation
+        const animConfig = performanceConfig.getAnimationConfig();
+        const updateInterval = 1000 / animConfig.updateFrequency;
+        
+        if (!this._lastAnimUpdate) this._lastAnimUpdate = 0;
+        const now = performance.now();
+        if (now - this._lastAnimUpdate < updateInterval) {
+            return;
+        }
+        this._lastAnimUpdate = now;
+
         // Lưu trạng thái animation trước đó
         if (!this._lastAnimState) this._lastAnimState = '';
         let nextState = '';
@@ -162,30 +185,38 @@ export class CharacterController {
         }
         if (this._lastAnimState !== nextState) {
             // Tắt tất cả action trước khi bật action mới
-            if (idleAction && idleAction.isRunning()) idleAction.fadeOut(0.1);
-            if (runAction && runAction.isRunning()) runAction.fadeOut(0.1);
-            if (jumpAction && jumpAction.isRunning()) jumpAction.fadeOut(0.1);
+            const fadeTime = animConfig.fadeTime;
+            if (idleAction && idleAction.isRunning()) idleAction.fadeOut(fadeTime);
+            if (runAction && runAction.isRunning()) runAction.fadeOut(fadeTime);
+            if (jumpAction && jumpAction.isRunning()) jumpAction.fadeOut(fadeTime);
             // Bật action mới
-            if (nextState === 'idle' && idleAction) idleAction.reset().fadeIn(0.2).play();
-            if (nextState === 'run' && runAction) runAction.reset().fadeIn(0.2).play();
-            if (nextState === 'jump' && jumpAction) jumpAction.reset().fadeIn(0.1).play();
+            if (nextState === 'idle' && idleAction) idleAction.reset().fadeIn(fadeTime * 2).play();
+            if (nextState === 'run' && runAction) runAction.reset().fadeIn(fadeTime * 2).play();
+            if (nextState === 'jump' && jumpAction) jumpAction.reset().fadeIn(fadeTime).play();
             this._lastAnimState = nextState;
         }
 
-        // Run sound logic
-        if (isMoving && this.isOnGround) {
-            if (runSound && !runSound.isPlaying) {
-                runSound.play();
+        // Run sound logic với throttling
+        if (!this._lastSoundUpdate) this._lastSoundUpdate = 0;
+        if (now - this._lastSoundUpdate > 100) { // Kiểm tra sound mỗi 100ms
+            if (isMoving && this.isOnGround) {
+                if (runSound && !runSound.isPlaying) {
+                    runSound.play();
+                }
+            } else {
+                if (runSound && runSound.isPlaying) {
+                    runSound.stop();
+                }
             }
-        } else {
-            if (runSound && runSound.isPlaying) {
-                runSound.stop();
-            }
+            this._lastSoundUpdate = now;
         }
     }
 
     update(cameraRotationY, deltaTime) {
-        this.debugLog(`[frame] dt=${deltaTime.toFixed(3)} ground=${this.isOnGround} vel=(${this.body.velocity.x.toFixed(2)}, ${this.body.velocity.y.toFixed(2)}, ${this.body.velocity.z.toFixed(2)})`);
+        // Giới hạn deltaTime để tránh frame drops lớn gây rung giật
+        const clampedDeltaTime = Math.min(deltaTime, 0.033); // Tối đa 30fps
+        
+        this.debugLog(`[frame] dt=${clampedDeltaTime.toFixed(3)} ground=${this.isOnGround} vel=(${this.body.velocity.x.toFixed(2)}, ${this.body.velocity.y.toFixed(2)}, ${this.body.velocity.z.toFixed(2)})`);
 
         this.checkGrounded();
     
@@ -209,9 +240,9 @@ export class CharacterController {
             }
         }
     
-        // Giảm jump cooldown
+        // Giảm jump cooldown với deltaTime được giới hạn
         if (this.jumpCooldown > 0) {
-            this.jumpCooldown -= deltaTime;
+            this.jumpCooldown -= clampedDeltaTime;
         }
     
         // Tính toán hướng
@@ -229,19 +260,24 @@ export class CharacterController {
         // (đã xử lý trực tiếp trong onKeyDown -> jump())
 
     
-        // === Di chuyển ===
+        // === Di chuyển với smoothing để giảm rung giật ===
         const moveSpeed = this.keys.sprint ? this.sprintSpeed : this.speed;
+        const charConfig = performanceConfig.getCharacterConfig();
+        const smoothingFactor = Math.min(clampedDeltaTime * 15 * charConfig.movementSmoothing, 1);
 
         if (this.isOnGround) {
-            this.body.velocity.x = direction.x * moveSpeed;
-            this.body.velocity.z = direction.z * moveSpeed;
+            // Áp dụng smoothing cho chuyển động để giảm rung giật
+            const targetVelX = direction.x * moveSpeed;
+            const targetVelZ = direction.z * moveSpeed;
+            
+            this.body.velocity.x = THREE.MathUtils.lerp(this.body.velocity.x, targetVelX, smoothingFactor);
+            this.body.velocity.z = THREE.MathUtils.lerp(this.body.velocity.z, targetVelZ, smoothingFactor);
         } else {
-            // Trên không
+            // Trên không với điều khiển mượt mà hơn
             if (this.body.velocity.y <= 0) {
-                // Chỉ cho phép điều chỉnh ngang khi đang rơi xuống
-                const airControl = 0.05;
-                const targetX = direction.x * moveSpeed * 0.2;
-                const targetZ = direction.z * moveSpeed * 0.2;
+                const airControl = 0.03 * charConfig.movementSmoothing; // Điều chỉnh air control theo performance
+                const targetX = direction.x * moveSpeed * 0.15;
+                const targetZ = direction.z * moveSpeed * 0.15;
 
                 this.body.velocity.x = THREE.MathUtils.lerp(this.body.velocity.x, targetX, airControl);
                 this.body.velocity.z = THREE.MathUtils.lerp(this.body.velocity.z, targetZ, airControl);
